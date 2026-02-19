@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import hindu from '../assets/Hindu.png';
+import christian from '../assets/Christian.png';
+import muslim from '../assets/Muslim.png';
+import buddhist from '../assets/Buddhist.png';
 import { Icons } from '../components/Icons';
 
 /* =========================================
-   SRI LANKAN DATA CONSTANTS
+   CONSTANTS & DATA
    ========================================= */
 
-const heroImages = [
-  "https://images.unsplash.com/photo-1621621667797-e06af521d96e?q=80&w=2070&auto=format&fit=crop", // Traditional/Kandyan
-  "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=1974&auto=format&fit=crop", // Western/Christian
-  "https://images.unsplash.com/photo-1610173827002-6b47c0f99d63?q=80&w=2070&auto=format&fit=crop", // Hindu/Cultural
-];
+const heroImages = [hindu, christian, muslim, buddhist];
 
 const features = [
   { 
@@ -18,36 +18,36 @@ const features = [
     title: 'Horoscope Check', 
     desc: 'Easily match Porondam (Grahacharaya). Essential for Buddhist and Hindu marriage proposals.', 
     gradient: 'from-amber-500 to-orange-500', 
-    glow: 'hover:shadow-[0_0_30px_rgba(245,158,11,0.3)]' 
+    glow: 'hover:shadow-amber-500/20' 
   },
   { 
     icon: Icons.HeartHandshake, 
     title: 'Your Religion & Values', 
     desc: 'Find a partner who respects your faith. Whether for a Poruwa, Kovil, Nikah, or Church wedding.', 
     gradient: 'from-blue-400 to-indigo-600', 
-    glow: 'hover:shadow-[0_0_30px_rgba(99,102,241,0.3)]' 
+    glow: 'hover:shadow-indigo-500/20' 
   },
   { 
     icon: Icons.BadgeCheck, 
     title: 'Verified Profiles', 
     desc: 'We check NIC details to make sure every profile is real. A safe place for your son or daughter.', 
     gradient: 'from-emerald-400 to-teal-600', 
-    glow: 'hover:shadow-[0_0_30px_rgba(16,185,129,0.3)]' 
+    glow: 'hover:shadow-emerald-500/20' 
   },
   { 
     icon: Icons.Globe, 
     title: 'Sri Lankans Abroad', 
     desc: 'Connect with Sri Lankan professionals living in Australia, UK, Canada, UAE, and other countries.', 
     gradient: 'from-rose-400 to-pink-600', 
-    glow: 'hover:shadow-[0_0_30px_rgba(244,63,94,0.3)]' 
+    glow: 'hover:shadow-rose-500/20' 
   },
 ];
 
 const stats = [
-  { value: '100K+', label: 'Happy Users', icon: Icons.Users, color: 'text-rose-500 bg-rose-500/10 ring-rose-500/20' },
-  { value: '4', label: 'Religions', icon: Icons.Heart, color: 'text-blue-500 bg-blue-500/10 ring-blue-500/20' },
-  { value: '100%', label: 'Private', icon: Icons.Shield, color: 'text-amber-500 bg-amber-500/10 ring-amber-500/20' },
-  { value: '24/7', label: 'Support', icon: Icons.MessageCircle, color: 'text-emerald-500 bg-emerald-500/10 ring-emerald-500/20' },
+  { value: '100K+', label: 'Happy Users', icon: Icons.Users, color: 'text-rose-500 bg-rose-500/10' },
+  { value: '4', label: 'Religions', icon: Icons.Heart, color: 'text-blue-500 bg-blue-500/10' },
+  { value: '100%', label: 'Private', icon: Icons.Shield, color: 'text-amber-500 bg-amber-500/10' },
+  { value: '24/7', label: 'Support', icon: Icons.MessageCircle, color: 'text-emerald-500 bg-emerald-500/10' },
 ];
 
 const steps = [
@@ -57,30 +57,10 @@ const steps = [
 ];
 
 const testimonials = [
-  { 
-    name: 'Nuwan & Sanduni', 
-    location: 'Colombo (Buddhist)', 
-    text: 'It was hard to find a matching horoscope. But here, we found the perfect Porondam match easily. Our parents are very happy.', 
-    color: 'from-amber-400 to-orange-600' 
-  },
-  { 
-    name: 'Karthik & Priya', 
-    location: 'Jaffna / Canada (Hindu)', 
-    text: 'I live in Canada but wanted a partner who understands our Tamil culture. We met here and had a beautiful wedding in Nallur.', 
-    color: 'from-rose-400 to-pink-600' 
-  },
-  { 
-    name: 'Imran & Fathima', 
-    location: 'Kandy (Muslim)', 
-    text: 'Privacy was very important for our families. This site is very safe for Muslim marriage proposals. Highly recommended.', 
-    color: 'from-emerald-400 to-teal-600' 
-  },
-  { 
-    name: 'Shane & Sarah', 
-    location: 'Negombo (Christian)', 
-    text: 'We wanted a partner who shared our Catholic values. We found each other here and got married in our local church.', 
-    color: 'from-blue-400 to-indigo-600' 
-  },
+  { name: 'Nuwan & Sanduni', location: 'Colombo (Buddhist)', text: 'It was hard to find a matching horoscope. But here, we found the perfect Porondam match easily.', color: 'from-amber-400 to-orange-600' },
+  { name: 'Karthik & Priya', location: 'Jaffna / Canada (Hindu)', text: 'I live in Canada but wanted a partner who understands our Tamil culture. We met here and had a beautiful wedding.', color: 'from-rose-400 to-pink-600' },
+  { name: 'Imran & Fathima', location: 'Kandy (Muslim)', text: 'Privacy was very important for our families. This site is very safe for Muslim marriage proposals.', color: 'from-emerald-400 to-teal-600' },
+  { name: 'Shane & Sarah', location: 'Negombo (Christian)', text: 'We wanted a partner who shared our Catholic values. We found each other here and got married in our local church.', color: 'from-blue-400 to-indigo-600' },
 ];
 
 /* =========================================
@@ -89,14 +69,14 @@ const testimonials = [
 
 const SectionHeader = ({ icon: Icon, badgeText, title, titleHighlight, desc }) => (
   <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16 px-4">
-    <div className="inline-flex items-center gap-2 px-4 py-1.5 sm:py-2 rounded-full bg-[var(--accent-500)]/10 text-[var(--accent-500)] text-[10px] min-[400px]:text-xs sm:text-sm font-bold uppercase tracking-wider mb-4 sm:mb-6 ring-1 ring-[var(--accent-500)]/30 shadow-[0_0_20px_rgba(199,131,123,0.15)] backdrop-blur-md">
-      {Icon && <Icon size={16} className="w-4 h-4" />}
+    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--accent-500)]/10 text-[var(--accent-500)] text-xs font-bold uppercase tracking-wider mb-4 border border-[var(--accent-500)]/20 shadow-sm">
+      {Icon && <Icon size={14} />}
       <span>{badgeText}</span>
     </div>
-    <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 sm:mb-6 text-[var(--text-primary)] leading-tight tracking-tight text-balance">
-      {title} <span className="text-gradient block sm:inline">{titleHighlight}</span>
+    <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 text-[var(--text-primary)] leading-tight">
+      {title} <span className="text-gradient">{titleHighlight}</span>
     </h2>
-    {desc && <p className="text-[var(--text-secondary)] text-sm sm:text-lg leading-relaxed px-2 sm:px-0 text-pretty">{desc}</p>}
+    {desc && <p className="text-[var(--text-secondary)] text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl mx-auto">{desc}</p>}
   </div>
 );
 
@@ -116,117 +96,93 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="w-full flex flex-col overflow-x-hidden bg-[var(--bg-primary)] selection:bg-[var(--accent-500)] selection:text-white">
+    <div className="flex flex-col min-h-screen bg-[var(--bg-primary)] overflow-x-hidden">
       
       {/* ========== HERO SECTION ========== */}
-      <section className="relative min-h-[100svh] flex items-center justify-center pt-28 pb-16 lg:pt-32 overflow-hidden w-full">
+      <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden">
         
-        {/* Background Carousel - Fixed Z-Indices to stay behind mobile menu */}
-        <div className="absolute inset-0 z-0 bg-[var(--bg-primary)]">
+        {/* Background Slider */}
+        <div className="absolute inset-0 z-0">
           {heroImages.map((img, index) => (
             <div
               key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                index === currentImage ? 'opacity-100' : 'opacity-0'
-              }`}
+              className={`absolute inset-0 transition-opacity duration-1000 ${index === currentImage ? 'opacity-100' : 'opacity-0'}`}
             >
-              {/* Overlays */}
-              <div className="absolute inset-0 bg-[var(--bg-primary)]/40 dark:bg-[#07090f]/60" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-[var(--bg-primary)]/80 to-[var(--bg-primary)]/30" />
-              
               <img 
                 src={img} 
                 alt="Sri Lankan Wedding" 
-                className={`w-full h-full object-cover object-center transform transition-transform duration-[8000ms] ease-out mix-blend-multiply dark:mix-blend-normal ${
-                  index === currentImage ? 'scale-105' : 'scale-100'
-                }`} 
+                // Using object-[center_30%] helps keep faces (usually near top) visible on mobile screens
+                className={`w-full h-full object-cover object-[center_30%] transition-transform duration-[8000ms] ease-out ${index === currentImage ? 'scale-110' : 'scale-100'}`} 
               />
+              {/* Gradient Overlay: Darker at bottom for text readability, clearer at top for faces */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/90" />
             </div>
           ))}
-          {/* Noise texture - kept at low z-index */}
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 dark:opacity-20 mix-blend-overlay pointer-events-none"></div>
         </div>
 
-        {/* Content Container - Z-Index changed from 40 to 10 to allow Menu (z-50) to overlay correctly */}
-        <div className="relative page-container z-10 w-full flex flex-col items-center">
-          <div className="text-center max-w-5xl mx-auto px-4 mt-4 sm:mt-8 w-full">
-            
-            {/* Pill Badge */}
-            <div className="inline-flex items-center gap-2.5 px-4 py-2 sm:py-2.5 rounded-full bg-[var(--surface-glass)] ring-1 ring-[var(--border-primary)] shadow-xl backdrop-blur-xl mb-6 sm:mb-8 transition-transform hover:scale-105 cursor-default group">
-              <span className="relative flex h-2.5 w-2.5 sm:h-3 sm:w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 bg-emerald-500"></span>
+        {/* Hero Content */}
+        <div className="relative z-10 container mx-auto px-6 text-center pt-20 sm:pt-0">
+          
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white font-medium text-[10px] sm:text-xs mb-6 animate-fade-in shadow-lg">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            #1 Trusted Matrimony Site in Sri Lanka
+          </div>
+
+          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-extrabold text-white mb-6 leading-tight drop-shadow-xl tracking-tight">
+            Find Your Life Partner <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500">
+              The Sri Lankan Way
+            </span>
+          </h1>
+
+          <p className="text-base sm:text-xl text-gray-100 mb-10 max-w-2xl mx-auto leading-relaxed font-medium drop-shadow-md text-pretty">
+            Safe, private, and trusted by thousands of Buddhist, Hindu, Muslim, and Christian families.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-lg mx-auto">
+            <button
+              onClick={() => navigate('/register')}
+              className="w-full btn-primary py-4 text-base sm:text-lg shadow-xl shadow-amber-500/20 group rounded-xl sm:rounded-full"
+            >
+              <Icons.Heart size={20} className="fill-white group-hover:scale-110 transition-transform" />
+              <span>Create Free Profile</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/search')}
+              className="w-full btn-secondary bg-white/10 text-white border-white/30 hover:bg-white/20 backdrop-blur-md py-4 text-base sm:text-lg rounded-xl sm:rounded-full"
+            >
+              <Icons.Search size={20} />
+              <span>Search Proposals</span>
+            </button>
+          </div>
+
+          {/* Quick Search Tags */}
+          <div className="mt-12 flex flex-wrap justify-center gap-2 sm:gap-3 opacity-90">
+            {['Buddhist', 'Hindu', 'Muslim', 'Christian', 'Abroad', 'Tamil', 'Sinhala'].map((tag) => (
+              <span key={tag} className="px-3 py-1 rounded-lg bg-black/40 border border-white/10 text-white/90 text-[10px] sm:text-xs backdrop-blur-sm cursor-pointer hover:bg-white/10 transition-colors">
+                {tag}
               </span>
-              <span className="text-[10px] min-[400px]:text-xs sm:text-sm font-semibold tracking-wide text-[var(--text-primary)] drop-shadow-sm group-hover:text-[var(--accent-500)] transition-colors">
-                #1 Trusted Site in Sri Lanka
-              </span>
-            </div>
-
-            {/* Main Heading - Responsive Text Sizing */}
-            <h1 className="text-4xl min-[400px]:text-5xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-5 sm:mb-8 tracking-tight text-[var(--text-primary)] drop-shadow-sm leading-tight px-1 sm:px-0 break-words w-full">
-              Find Your Life Partner
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent-500)] to-[var(--accent-700)] block mt-2 pb-2">
-                The Sri Lankan Way
-              </span>
-            </h1>
-
-            {/* Subtext */}
-            <p className="text-sm min-[400px]:text-base md:text-lg lg:text-xl text-[var(--text-secondary)] max-w-3xl mx-auto mb-8 sm:mb-12 leading-relaxed font-medium px-2 sm:px-0 text-pretty">
-              The most trusted place for Buddhist, Hindu, Muslim, and Christian families to find marriage proposals. Safe, private, and easy to use.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full px-4 sm:px-0">
-              <button
-                onClick={() => navigate('/register')}
-                className="w-full sm:w-auto group relative inline-flex items-center justify-center px-6 py-4 text-base sm:text-lg font-bold text-white transition-all duration-300 bg-gradient-to-r from-[var(--accent-500)] to-[var(--accent-700)] rounded-2xl sm:rounded-full overflow-hidden shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 min-w-[200px]"
-              >
-                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-                <Icons.Heart size={20} className="fill-current mr-2 w-5 h-5" />
-                <span>Create Free Profile</span>
-                <Icons.ArrowRight size={20} className="ml-2 group-hover:translate-x-1.5 transition-transform w-5 h-5" />
-              </button>
-
-              <button
-                onClick={() => navigate('/search')}
-                className="w-full sm:w-auto text-base sm:text-lg py-4 px-6 bg-[var(--surface-glass)] hover:bg-[var(--surface-glass-hover)] text-[var(--text-primary)] ring-1 ring-[var(--border-primary)] backdrop-blur-xl shadow-lg transition-all duration-300 flex items-center justify-center min-w-[200px] rounded-2xl sm:rounded-full active:scale-95 hover:scale-[1.02]"
-              >
-                <Icons.Globe size={20} className="mr-2 w-5 h-5 text-[var(--accent-500)]" />
-                <span>Search Proposals</span>
-              </button>
-            </div>
-            
-            {/* Quick Search Tags */}
-            <div className="mt-12 sm:mt-16 relative">
-              <div className="w-full overflow-x-auto snap-x snap-mandatory flex sm:flex-wrap sm:justify-center items-center gap-2 sm:gap-3 px-4 sm:px-0 pb-4 sm:pb-0 scrollbar-hide">
-                <span className="flex-shrink-0 text-[var(--text-muted)] uppercase tracking-widest text-[10px] sm:text-xs pl-2 sm:pl-0 font-bold">Search:</span>
-                {[
-                  'Buddhist', 'Hindu', 'Muslim', 'Christian', 'Sinhala', 'Tamil', 'Abroad'
-                ].map((tag) => (
-                  <span key={tag} className="flex-shrink-0 snap-center px-4 py-2 rounded-xl bg-[var(--surface-glass)] ring-1 ring-[var(--border-primary)] hover:bg-[var(--surface-glass-hover)] hover:ring-[var(--accent-500)]/50 transition-all duration-300 cursor-pointer backdrop-blur-md shadow-sm active:scale-95 text-xs sm:text-sm text-[var(--text-primary)] font-medium">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-
+            ))}
           </div>
         </div>
       </section>
 
       {/* ========== STATS SECTION ========== */}
-      <section className="relative z-10 -mt-8 sm:-mt-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
+      {/* Mobile: No negative margin (stacks naturally). Desktop: Negative margin to overlap hero. */}
+      <section className="relative z-20 px-4 mb-20 mt-6 lg:-mt-16">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {stats.map((stat, i) => (
-              <div key={i} className="text-center group p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] bg-[var(--bg-secondary)]/90 backdrop-blur-2xl ring-1 ring-[var(--border-primary)] hover:ring-[var(--accent-500)]/40 hover:bg-[var(--surface-glass)] transition-all duration-500 shadow-xl hover:shadow-2xl hover:-translate-y-1 active:scale-[0.98]">
-                <div className={`inline-flex p-3 sm:p-4 rounded-xl sm:rounded-2xl ${stat.color} ring-1 mb-3 sm:mb-5 transition-transform group-hover:-translate-y-1 group-hover:scale-110 duration-500 shadow-sm`}>
-                  <stat.icon size={28} className="sm:w-8 sm:h-8" />
+              <div key={i} className="bg-[var(--bg-secondary)] p-4 sm:p-6 rounded-2xl shadow-xl border border-[var(--border-primary)] text-center transform hover:-translate-y-1 transition-transform duration-300 backdrop-blur-xl bg-opacity-95">
+                <div className={`inline-flex p-3 rounded-full ${stat.color} mb-3 shadow-sm`}>
+                  <stat.icon size={20} className="sm:w-6 sm:h-6" />
                 </div>
-                <h3 className="text-2xl sm:text-4xl font-black mb-1.5 text-[var(--text-primary)] tracking-tight">
-                  {stat.value}
-                </h3>
-                <p className="text-[10px] sm:text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest leading-tight">{stat.label}</p>
+                <h3 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">{stat.value}</h3>
+                <p className="text-[10px] sm:text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -234,148 +190,102 @@ export default function HomePage() {
       </section>
 
       {/* ========== FEATURES SECTION ========== */}
-      <section className="py-20 sm:py-32 relative overflow-hidden">
-        <div className="page-container relative z-10">
+      <section className="py-16 sm:py-24 px-4 bg-[var(--bg-secondary)]/30">
+        <div className="container mx-auto">
           <SectionHeader 
-            icon={Icons.Star}
-            badgeText="Our Service"
-            title="Respecting All"
-            titleHighlight="Traditions"
-            desc="We use modern technology to help you find a partner while keeping our Sri Lankan culture and values."
+            icon={Icons.Star} 
+            badgeText="Why Choose Us" 
+            title="Respecting" 
+            titleHighlight="Traditions" 
+            desc="Modern technology meets Sri Lankan culture." 
           />
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 px-4">
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {features.map((feature, i) => (
-              <div
-                key={i}
-                className={`group relative p-6 sm:p-8 rounded-[2rem] transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl ring-1 ring-[var(--border-primary)] bg-gradient-to-b from-[var(--surface-glass)] to-transparent backdrop-blur-xl active:scale-[0.98] overflow-hidden ${feature.glow}`}
-              >
-                <div className={`inline-flex p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br ${feature.gradient} text-white mb-5 sm:mb-6 shadow-lg shadow-black/10 transform group-hover:scale-110 transition-transform duration-500`}>
-                  <feature.icon size={24} className="sm:w-7 sm:h-7" />
+              <div key={i} className={`group p-6 rounded-3xl bg-[var(--surface-glass)] border border-[var(--border-primary)] hover:border-[var(--accent-500)]/30 transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-xl ${feature.glow}`}>
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-white mb-4 shadow-lg`}>
+                  <feature.icon size={24} />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold mb-3 text-[var(--text-primary)] tracking-tight">{feature.title}</h3>
-                <p className="text-[var(--text-secondary)] leading-relaxed text-sm sm:text-base text-pretty">
-                  {feature.desc}
-                </p>
+                <h3 className="text-lg sm:text-xl font-bold text-[var(--text-primary)] mb-2">{feature.title}</h3>
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{feature.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ========== HOW IT WORKS SECTION ========== */}
-      <section className="py-20 sm:py-32 bg-[var(--surface-glass)]/20 border-y border-[var(--border-primary)] relative overflow-hidden">
-        <div className="page-container relative z-10">
-          <SectionHeader 
-            icon={Icons.Settings}
-            badgeText="Easy Process"
-            title="How to Find a"
-            titleHighlight="Partner"
-            desc="Finding a marriage proposal is simple. Just follow these 3 steps."
-          />
-
-          <div className="relative max-w-5xl mx-auto mt-12 sm:mt-24 px-4">
-            <div className="hidden lg:block absolute top-12 left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-transparent via-[var(--accent-500)]/30 to-transparent" />
-
-            <div className="grid md:grid-cols-3 gap-12 sm:gap-16">
-              {steps.map((item, i) => (
-                <div key={i} className="relative text-center group bg-[var(--surface-glass)]/50 sm:bg-transparent p-8 sm:p-0 rounded-[2rem] ring-1 sm:ring-0 ring-[var(--border-primary)] backdrop-blur-sm sm:backdrop-blur-none transition-all hover:bg-[var(--surface-glass)] sm:hover:bg-transparent">
-                  <div className="relative inline-flex mb-6 sm:mb-8">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-b from-[var(--bg-secondary)] to-[var(--bg-primary)] ring-1 ring-[var(--border-primary)] group-hover:ring-[var(--accent-500)]/50 flex items-center justify-center text-[var(--text-primary)] shadow-2xl sm:group-hover:-translate-y-2 transition-all duration-500 z-10 backdrop-blur-xl relative">
-                      <item.icon size={32} className="text-[var(--accent-500)] sm:w-10 sm:h-10 transition-transform group-hover:scale-110 duration-500" />
-                    </div>
-                    <span className="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[var(--accent-500)] to-[var(--accent-700)] text-white text-sm sm:text-base font-bold flex items-center justify-center shadow-lg transform rotate-12 group-hover:rotate-0 transition-all duration-500 z-20 ring-4 ring-[var(--bg-primary)]">
-                      {item.step}
-                    </span>
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold mb-3 text-[var(--text-primary)]">{item.title}</h3>
-                  <p className="text-[var(--text-secondary)] max-w-[280px] mx-auto leading-relaxed text-sm sm:text-base text-pretty">
-                    {item.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ========== TESTIMONIALS SECTION ========== */}
-      <section className="py-20 sm:py-32 relative overflow-hidden">
-        <div className="page-container relative z-10">
-          <SectionHeader 
-            icon={Icons.Heart}
-            badgeText="Success Stories"
-            title="Happy"
-            titleHighlight="Couples"
-            desc="See what other Sri Lankan families are saying about us."
-          />
-
-          <div className="relative">
-            <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-6 overflow-x-auto snap-x snap-mandatory px-4 sm:px-0 pb-8 sm:pb-0 -mx-4 sm:mx-0 scrollbar-hide">
-              {testimonials.map((testimonial, i) => (
-                <div key={i} className="w-[85vw] sm:w-auto flex-shrink-0 snap-center p-6 sm:p-8 flex flex-col h-full bg-gradient-to-br from-[var(--surface-glass)] to-transparent ring-1 ring-[var(--border-primary)] hover:ring-[var(--accent-500)]/40 hover:-translate-y-2 transition-all duration-500 shadow-xl hover:shadow-2xl relative overflow-hidden group active:scale-[0.98] rounded-[2rem]">
-                  
-                  <div className="flex items-center gap-1 mb-5 sm:mb-6">
-                    {[...Array(5)].map((_, j) => (
-                      <Icons.Star key={j} size={16} className="text-amber-400 fill-amber-400 sm:w-4 sm:h-4" />
-                    ))}
-                  </div>
-                  
-                  <blockquote className="text-sm sm:text-base text-[var(--text-primary)] mb-8 sm:mb-10 flex-1 leading-relaxed font-medium italic relative z-10 whitespace-normal text-pretty">
-                    "{testimonial.text}"
-                  </blockquote>
-                  
-                  <div className="flex items-center gap-4 pt-5 sm:pt-6 border-t border-[var(--border-primary)] relative z-10">
-                    <div className={`w-12 h-12 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br ${testimonial.color} flex items-center justify-center text-white font-bold text-lg shadow-lg ring-2 ring-[var(--bg-primary)] flex-shrink-0 group-hover:scale-110 transition-transform duration-500`}>
-                      {testimonial.name.charAt(0)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <cite className="not-italic font-bold text-[var(--text-primary)] block text-sm sm:text-base truncate">{testimonial.name}</cite>
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <Icons.MapPin size={12} className="text-[var(--text-muted)] flex-shrink-0" />
-                        <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider truncate">{testimonial.location}</span>
-                      </div>
-                    </div>
+      {/* ========== HOW IT WORKS ========== */}
+      <section className="py-16 sm:py-24 px-4 overflow-hidden">
+        <div className="container mx-auto relative">
+          <SectionHeader icon={Icons.Settings} badgeText="Simple Process" title="How It" titleHighlight="Works" />
+          
+          <div className="hidden lg:block absolute top-28 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-transparent via-[var(--accent-500)]/30 to-transparent" />
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12 relative z-10">
+            {steps.map((item, i) => (
+              <div key={i} className="flex flex-col items-center text-center group">
+                <div className="w-20 h-20 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] flex items-center justify-center shadow-lg mb-6 relative hover:scale-110 transition-transform duration-300 bg-gradient-to-b from-[var(--surface-glass)] to-[var(--bg-secondary)]">
+                  <item.icon size={32} className="text-[var(--accent-500)] group-hover:text-[var(--accent-600)] transition-colors" />
+                  <div className="absolute -top-3 -right-3 w-8 h-8 rounded-lg bg-[var(--accent-500)] text-white font-bold flex items-center justify-center text-sm shadow-md ring-4 ring-[var(--bg-primary)]">
+                    {item.step}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ========== FINAL CTA SECTION ========== */}
-      <section className="pb-20 sm:pb-32 pt-8 sm:pt-12">
-        <div className="page-container px-4">
-          <div className="relative rounded-[2rem] sm:rounded-[3rem] overflow-hidden p-8 sm:p-16 lg:p-24 text-center ring-1 ring-[var(--border-primary)] shadow-2xl bg-[var(--bg-secondary)]">
-            
-            <div className="relative z-10 max-w-3xl mx-auto">
-              <div className="inline-flex p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-[var(--surface-glass)] ring-1 ring-[var(--border-primary)] text-[var(--accent-500)] mb-6 sm:mb-10 shadow-[0_0_30px_rgba(199,131,123,0.1)] backdrop-blur-md">
-                <Icons.Heart size={32} className="sm:w-14 sm:h-14 animate-pulse drop-shadow-md" />
+                <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">{item.title}</h3>
+                <p className="text-sm text-[var(--text-secondary)] max-w-xs">{item.desc}</p>
               </div>
-              
-              <h2 className="text-3xl sm:text-5xl lg:text-7xl font-extrabold mb-4 sm:mb-8 text-[var(--text-primary)] tracking-tight leading-[1.1] text-balance">
-                Start Your <span className="text-gradient">Mangala</span> Journey
-              </h2>
-              
-              <p className="text-base sm:text-lg lg:text-2xl text-[var(--text-secondary)] mb-10 sm:mb-14 leading-relaxed px-2 font-medium text-pretty">
-                Find a partner who shares your religion, values, and traditions.
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ========== TESTIMONIALS (Mobile Horizontal Scroll) ========== */}
+      <section className="py-16 sm:py-24 px-4 bg-[var(--bg-secondary)]/30">
+        <div className="container mx-auto">
+          <SectionHeader icon={Icons.Heart} badgeText="Success Stories" title="Happy" titleHighlight="Couples" />
+          
+          <div className="flex overflow-x-auto pb-8 gap-4 sm:gap-6 snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible scrollbar-hide">
+            {testimonials.map((t, i) => (
+              <div key={i} className="min-w-[85vw] sm:min-w-0 snap-center bg-[var(--surface-glass)] p-6 rounded-3xl border border-[var(--border-primary)] shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full">
+                <div className="flex gap-1 mb-4">
+                  {[...Array(5)].map((_, j) => <Icons.Star key={j} size={14} className="text-amber-400 fill-amber-400" />)}
+                </div>
+                <p className="text-sm text-[var(--text-primary)] italic mb-6 flex-1">"{t.text}"</p>
+                <div className="flex items-center gap-3 pt-4 border-t border-[var(--border-primary)]">
+                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.color} flex items-center justify-center text-white font-bold shadow-md`}>
+                    {t.name[0]}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[var(--text-primary)]">{t.name}</p>
+                    <p className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold">{t.location}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ========== FINAL CTA ========== */}
+      <section className="py-16 sm:py-24 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <div className="bg-[var(--accent-500)] rounded-[2rem] sm:rounded-[3rem] p-8 md:p-12 text-center text-white shadow-2xl shadow-[var(--accent-500)]/30 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
+            <div className="relative z-10">
+              <h2 className="text-3xl md:text-5xl font-extrabold mb-6">Start Your Journey Today</h2>
+              <p className="text-base sm:text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+                Join the largest and most trusted matrimonial community in Sri Lanka.
               </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center w-full items-center">
-                <button
-                  onClick={() => navigate('/register')}
-                  className="w-full sm:w-auto group relative inline-flex items-center justify-center px-8 py-4 sm:py-5 text-base sm:text-xl font-bold text-white transition-all duration-300 bg-gradient-to-r from-[var(--accent-500)] to-[var(--accent-700)] rounded-2xl sm:rounded-full overflow-hidden shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 min-w-[240px]"
-                >
-                  <Icons.Sparkles size={22} className="mr-2 sm:w-6 sm:h-6" />
-                  <span>Register for Free</span>
-                </button>
-              </div>
+              <button 
+                onClick={() => navigate('/register')}
+                className="btn bg-white text-[var(--accent-600)] hover:bg-gray-100 border-none px-8 py-4 text-base sm:text-lg font-bold rounded-full shadow-xl hover:scale-105 transition-transform"
+              >
+                Register Free
+              </button>
             </div>
           </div>
         </div>
       </section>
-      
+
     </div>
   );
 }
