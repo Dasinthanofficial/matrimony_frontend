@@ -1,4 +1,3 @@
-// ===== FILE: ./src/pages/DashboardPage.jsx =====
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
@@ -213,37 +212,33 @@ export default function DashboardPage() {
     <div className="space-y-6 pb-6">
       {/* ===== HEADER ===== */}
       <header>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-600 text-xs font-medium">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              Online
-            </span>
-            {premium && (
-              <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 text-xs font-medium">
-                <Icons.Crown size={12} />
-                Premium
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          
+          <div className="flex flex-col gap-1">
+            <h1 className="text-2xl sm:text-3xl font-bold">
+              Welcome, <span className="text-gradient">{displayName}</span>
+            </h1>
+            <div className="flex items-center gap-3 mt-1">
+              <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 text-[10px] font-bold uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                Online
               </span>
-            )}
+              {premium && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-bold uppercase tracking-wider">
+                  <Icons.Crown size={12} />
+                  Premium
+                </span>
+              )}
+            </div>
           </div>
+
           <div className="flex items-center gap-2">
-            <button onClick={loadDashboardData} disabled={loading} className="btn-ghost text-sm">
+            <button onClick={loadDashboardData} disabled={loading} className="btn-secondary text-sm">
               <Icons.RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
               <span>Refresh</span>
             </button>
-            <Link to="/" className="btn-secondary text-sm">
-              <Icons.Home size={14} />
-              <span>Home</span>
-            </Link>
           </div>
         </div>
-
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-          Welcome, <span className="text-gradient">{displayName}</span>
-        </h1>
-        <p className="text-[var(--text-secondary)]">
-          {hasProfile ? "Here's your matchmaking overview" : 'Complete your profile to get started'}
-        </p>
       </header>
 
       {/* ===== ERROR BANNER ===== */}
@@ -257,17 +252,15 @@ export default function DashboardPage() {
 
       {/* ===== COMPLETE PROFILE PROMPT ===== */}
       {!hasProfile && (
-        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="icon-box-sm icon-box-warning">
-              <Icons.AlertTriangle size={16} />
-            </div>
-            <div>
-              <p className="font-medium text-amber-500">Complete Your Profile</p>
-              <p className="text-sm text-[var(--text-secondary)]">Add your details to start receiving matches</p>
-            </div>
+        <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/5 border border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <div className="p-3 bg-amber-500/20 rounded-xl text-amber-500">
+            <Icons.UserCheck size={24} />
           </div>
-          <Link to="/complete-profile" className="btn-primary sm:ml-auto">
+          <div className="flex-1">
+            <h3 className="font-bold text-amber-500 text-lg">Complete Your Profile</h3>
+            <p className="text-sm text-[var(--text-secondary)] mt-1">Add your basic details and photos to start appearing in search results and receiving matches.</p>
+          </div>
+          <Link to="/complete-profile" className="btn-primary sm:ml-auto whitespace-nowrap bg-amber-500 hover:bg-amber-600 border-none text-white shadow-lg shadow-amber-500/20">
             <Icons.Edit size={16} />
             <span>Complete Now</span>
           </Link>
@@ -279,22 +272,21 @@ export default function DashboardPage() {
         {statsCards.map((stat, i) => {
           const IconComponent = stat.icon;
           return (
-            <Link key={i} to={stat.link} className="card p-4 lg:p-5 hover:scale-[1.02] transition-transform">
-              <div className="flex items-center justify-between mb-3">
-                <div className={`p-2 rounded-xl ${stat.color}`}>
-                  <IconComponent size={18} />
+            <Link key={i} to={stat.link} className="card p-4 hover:scale-[1.02] transition-all hover:shadow-lg border border-[var(--border-primary)] hover:border-[var(--border-secondary)]">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-2.5 rounded-xl ${stat.color}`}>
+                  <IconComponent size={20} />
                 </div>
-                <div className="flex items-center gap-2">
-                  {stat.badge && (
-                    <span className="px-2 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold">
-                      {stat.badge}
-                    </span>
-                  )}
-                  {stat.value > 0 && <Icons.TrendingUp size={14} className="text-green-500" />}
-                </div>
+                {stat.badge && (
+                  <span className="px-2 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold shadow-md shadow-red-500/20">
+                    {stat.badge}
+                  </span>
+                )}
               </div>
-              <p className="text-2xl lg:text-3xl font-bold mb-1 text-[var(--text-primary)]">{stat.value}</p>
-              <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider">{stat.label}</p>
+              <div>
+                <p className="text-2xl lg:text-3xl font-bold mb-1 text-[var(--text-primary)]">{stat.value}</p>
+                <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold">{stat.label}</p>
+              </div>
             </Link>
           );
         })}
@@ -302,94 +294,108 @@ export default function DashboardPage() {
 
       {/* ===== PROFILE STRENGTH + MEMBERSHIP ===== */}
       <div className="grid lg:grid-cols-3 gap-6">
+        
         {/* Profile Strength */}
-        <div className="lg:col-span-2 card p-6">
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            {/* FIX: SVG circle uses --border-color which is now defined for both themes */}
-            <div className="relative w-28 h-28 lg:w-32 lg:h-32 flex-shrink-0">
+        <div className="lg:col-span-2 card p-6 flex flex-col justify-center">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-bold text-lg flex items-center gap-2">
+              <Icons.Activity size={18} className="text-[var(--accent-500)]" />
+              Profile Strength
+            </h3>
+            {hasProfile && (
+              <Link to={profileLink} className="text-xs font-medium text-[var(--accent-500)] hover:underline flex items-center gap-1">
+                View Profile <Icons.ChevronRight size={12} />
+              </Link>
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-8">
+            {/* Circular Progress */}
+            <div className="relative w-32 h-32 flex-shrink-0">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border-color)" strokeWidth="8" />
+                {/* Track background */}
+                <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="8" className="text-[var(--surface-glass-active)]" />
+                {/* Progress */}
                 <circle
                   cx="50" cy="50" r="40" fill="none"
-                  stroke="var(--accent-500)" strokeWidth="8"
+                  stroke={completionPct < 50 ? '#ef4444' : completionPct < 80 ? '#f59e0b' : '#10b981'}
+                  strokeWidth="8"
                   strokeLinecap="round"
                   strokeDasharray={`${completionPct * 2.51} 251`}
-                  className="transition-all duration-1000"
+                  className="transition-all duration-1000 ease-out"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">{completionPct}%</span>
-                <span className="text-[10px] text-[var(--text-muted)] uppercase">Complete</span>
+                <span className="text-3xl font-bold text-[var(--text-primary)]">{completionPct}%</span>
               </div>
             </div>
 
-            <div className="flex-1 text-center sm:text-left">
-              <h3 className="text-lg lg:text-xl font-bold mb-2">Profile Strength</h3>
-              <p className="text-sm text-[var(--text-secondary)] mb-4">
-                {completionPct < 30 ? 'Complete your profile to get better matches!'
-                  : completionPct < 60 ? 'Good progress! Add more details to improve visibility.'
-                  : completionPct < 90 ? 'Almost there! A few more details will help.'
-                  : 'Excellent! Your profile is well optimized.'}
+            <div className="flex-1 w-full">
+              <p className="text-sm text-[var(--text-secondary)] mb-4 font-medium">
+                {completionPct < 30 ? 'Your profile is incomplete. Add more details to get noticed.'
+                  : completionPct < 80 ? 'Good start! Fill in the missing details to improve your matches.'
+                  : 'Great job! Your profile is looking strong.'}
               </p>
 
               {completionData.details && Object.keys(completionData.details).length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {Object.entries(completionData.details).slice(0, 6).map(([key, value]) => (
-                    <div key={key} className="flex items-center gap-2 text-xs">
-                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${value >= 100 ? 'bg-green-500' : value >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} />
-                      <span className="text-[var(--text-muted)] capitalize truncate">
+                    <div key={key} className="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-glass)] border border-[var(--border-subtle)]">
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${value >= 100 ? 'bg-green-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : value > 0 ? 'bg-amber-500' : 'bg-gray-600'}`} />
+                      <span className="text-xs text-[var(--text-secondary)] font-medium capitalize truncate flex-1">
                         {key.replace(/([A-Z])/g, ' $1').trim()}
                       </span>
-                      <span className="font-medium ml-auto">{Math.round(value)}%</span>
+                      <span className={`text-xs font-bold ${value >= 100 ? 'text-green-500' : 'text-[var(--text-muted)]'}`}>{Math.round(value)}%</span>
                     </div>
                   ))}
                 </div>
               )}
-
-              <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
-                <Link to="/complete-profile" className="btn-primary">
-                  <Icons.Edit size={16} />
-                  <span>{completionPct < 100 ? 'Complete Profile' : 'Edit Profile'}</span>
-                </Link>
-                {hasProfile && (
-                  <Link to={profileLink} className="btn-secondary">
-                    <Icons.Eye size={16} />
-                    <span>View Profile</span>
-                  </Link>
-                )}
-              </div>
             </div>
+          </div>
+          
+          <div className="mt-6 pt-4 border-t border-[var(--border-primary)] flex justify-end">
+             <Link to="/complete-profile" className="btn-secondary text-sm">
+                <Icons.Edit size={14} />
+                <span>Update Details</span>
+             </Link>
           </div>
         </div>
 
         {/* Membership */}
-        <div className="card p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Icons.Crown size={16} className="text-[var(--accent-500)]" />
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)]">Membership</h4>
+        <div className="card p-6 flex flex-col h-full">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="p-2 rounded-lg bg-[var(--surface-glass-active)]">
+               <Icons.Crown size={18} className="text-[var(--accent-500)]" />
+            </div>
+            <h4 className="font-bold text-lg">Membership</h4>
           </div>
 
-          <div className="p-4 rounded-xl bg-[var(--bg-tertiary)] mb-4">
-            <div className="flex items-center gap-3">
-              <div className={`p-2.5 rounded-xl ${premium ? 'bg-amber-500/10 text-amber-500' : 'bg-[var(--surface-glass-hover)] text-[var(--text-muted)]'}`}>
-                {premium ? <Icons.Crown size={20} /> : <Icons.User size={20} />}
-              </div>
-              <div>
-                <p className="font-semibold text-[var(--text-primary)]">{premium ? 'Premium' : 'Free Plan'}</p>
-                <p className="text-xs text-[var(--text-muted)]">{premium ? 'All features unlocked' : 'Limited access'}</p>
-              </div>
+          <div className={`p-4 rounded-xl mb-6 border ${premium ? 'bg-amber-500/10 border-amber-500/20' : 'bg-[var(--surface-glass)] border-[var(--border-primary)]'}`}>
+            <div className="flex justify-between items-start">
+               <div>
+                  <p className={`font-bold text-lg ${premium ? 'text-amber-500' : 'text-[var(--text-primary)]'}`}>
+                     {premium ? 'Premium Plan' : 'Free Plan'}
+                  </p>
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
+                     {premium ? 'Unlimited access & visibility' : 'Upgrade to unlock all features'}
+                  </p>
+               </div>
+               {premium ? <Icons.CheckCircle size={20} className="text-amber-500" /> : <Icons.Lock size={20} className="text-[var(--text-muted)]" />}
             </div>
           </div>
 
-          <div className="space-y-3 mb-4">
+          <div className="space-y-4 mb-6 flex-1">
             {[
-              { label: 'Interests Sent', value: stats.interestsSent },
-              { label: 'Shortlisted',    value: stats.shortlistCount },
-              { label: 'Active Chats',   value: stats.conversations  },
+              { label: 'Interests Sent', value: stats.interestsSent, icon: Icons.Send },
+              { label: 'Shortlisted',    value: stats.shortlistCount, icon: Icons.Bookmark },
+              { label: 'Active Chats',   value: stats.conversations, icon: Icons.MessageCircle },
             ].map(item => (
-              <div key={item.label} className="flex justify-between items-center text-sm">
-                <span className="text-[var(--text-muted)]">{item.label}</span>
-                <span className="font-semibold text-[var(--text-primary)]">{item.value}</span>
+              <div key={item.label} className="flex justify-between items-center text-sm p-2 rounded-lg hover:bg-[var(--surface-glass)] transition-colors">
+                <div className="flex items-center gap-3 text-[var(--text-secondary)]">
+                   <item.icon size={14} />
+                   <span>{item.label}</span>
+                </div>
+                <span className="font-bold text-[var(--text-primary)]">{item.value}</span>
               </div>
             ))}
           </div>
@@ -397,10 +403,10 @@ export default function DashboardPage() {
           {!premium && user?.role !== 'agency' && (
             <Link
               to="/pricing"
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-amber-600 text-sm font-medium hover:from-amber-500/15 hover:to-orange-500/15 transition-all"
+              className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white text-sm font-bold shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:scale-[1.02] transition-all"
             >
-              <Icons.Zap size={16} />
-              <span>Upgrade to Premium</span>
+              <Icons.Zap size={16} className="fill-white" />
+              <span>Upgrade Now</span>
             </Link>
           )}
         </div>
@@ -409,19 +415,19 @@ export default function DashboardPage() {
       {/* ===== QUICK ACTIONS + RECENT ACTIVITY ===== */}
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <h3 className="font-semibold mb-4 flex items-center gap-2">
-            <Icons.Zap size={16} className="text-[var(--accent-500)]" />
+          <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+            <Icons.Zap size={18} className="text-[var(--accent-500)]" />
             Quick Actions
           </h3>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {quickActions.map(action => {
               const IconComponent = action.icon;
               return (
-                <Link key={action.path} to={action.path} className="card p-4 lg:p-5 hover:scale-105 transition-transform group">
-                  <div className={`p-3 rounded-xl ${action.color} mb-3 w-fit group-hover:scale-110 transition-transform`}>
+                <Link key={action.path} to={action.path} className="card p-4 flex flex-col items-center text-center gap-3 hover:border-[var(--accent-500)] hover:shadow-md transition-all group">
+                  <div className={`p-3 rounded-full ${action.color} group-hover:scale-110 transition-transform`}>
                     <IconComponent size={20} />
                   </div>
-                  <h4 className="text-sm font-medium text-[var(--text-primary)]">{action.name}</h4>
+                  <h4 className="text-sm font-semibold text-[var(--text-primary)]">{action.name}</h4>
                 </Link>
               );
             })}
@@ -429,38 +435,40 @@ export default function DashboardPage() {
         </div>
 
         <div>
-          <h3 className="font-semibold mb-4 flex items-center gap-2">
-            <Icons.Clock size={16} className="text-[var(--accent-500)]" />
+          <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+            <Icons.Clock size={18} className="text-[var(--accent-500)]" />
             Recent Activity
           </h3>
-          <div className="card p-4">
-            <div className="space-y-3">
+          <div className="card p-2">
+            <div className="space-y-1">
               {recentActivity.map((activity, i) => {
                 const IconComponent = activity.icon || Icons.Bell;
                 return (
                   <Link
                     key={i}
                     to={activity.link || '#'}
-                    className="flex items-start gap-3 p-2 -mx-2 rounded-lg hover:bg-[var(--surface-glass-hover)] transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--surface-glass)] transition-colors"
                   >
-                    <div className={`p-2 rounded-lg bg-[var(--surface-glass)] flex-shrink-0 ${activity.color || ''}`}>
+                    <div className={`p-2 rounded-full bg-[var(--surface-glass-active)] flex-shrink-0 ${activity.color || ''}`}>
                       <IconComponent size={14} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm truncate text-[var(--text-secondary)]">{activity.text}</p>
-                      {activity.time && <p className="text-xs text-[var(--text-muted)]">{activity.time}</p>}
+                      <p className="text-sm truncate text-[var(--text-primary)] font-medium">{activity.text}</p>
+                      {activity.time && <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{activity.time}</p>}
                     </div>
+                    <Icons.ChevronRight size={14} className="text-[var(--text-muted)]" />
                   </Link>
                 );
               })}
             </div>
-            <Link
-              to="/interests"
-              className="flex items-center justify-center gap-2 text-sm text-[var(--accent-500)] font-medium pt-3 mt-3 border-t border-[var(--border-primary)]"
-            >
-              <span>View All Activity</span>
-              <Icons.ChevronRight size={14} />
-            </Link>
+            {recentActivity.length > 0 && (
+                <Link
+                to="/notifications"
+                className="flex items-center justify-center gap-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent-500)] font-medium py-3 border-t border-[var(--border-primary)] mt-1"
+                >
+                <span>View All History</span>
+                </Link>
+            )}
           </div>
         </div>
       </div>
@@ -469,37 +477,37 @@ export default function DashboardPage() {
       {suggestedProfiles.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold flex items-center gap-2">
-              <Icons.Sparkles size={16} className="text-[var(--accent-500)]" />
+            <h3 className="font-bold text-lg flex items-center gap-2">
+              <Icons.Sparkles size={18} className="text-[var(--accent-500)]" />
               Suggested for You
             </h3>
-            <Link to="/search" className="btn-ghost text-sm">
+            <Link to="/search" className="btn-secondary text-xs py-1.5 px-3">
               <span>View All</span>
-              <Icons.ChevronRight size={14} />
+              <Icons.ArrowRight size={14} />
             </Link>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {suggestedProfiles.map(profile => {
               const photoUrl = profile.photos?.find(p => p.isProfile)?.url || profile.photos?.[0]?.url;
               const initial  = (profile.fullName || 'U').charAt(0).toUpperCase();
               return (
-                <Link key={profile._id} to={`/profile/${profile.profileId || profile._id}`} className="card overflow-hidden group">
+                <Link key={profile._id} to={`/profile/${profile.profileId || profile._id}`} className="card overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
                   <div className="aspect-[3/4] relative">
                     {photoUrl ? (
-                      <img src={photoUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img src={photoUrl} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-[var(--accent-500)]/20 to-[var(--accent-700)]/20 flex items-center justify-center">
                         <span className="text-4xl font-bold text-[var(--text-muted)]">{initial}</span>
                       </div>
                     )}
-                    {/* Always dark gradient so white text is readable */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-80" />
                     <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <h4 className="text-white font-semibold truncate">
+                      <h4 className="text-white font-bold text-sm truncate">
                         {profile.fullName}{profile.age ? `, ${profile.age}` : ''}
                       </h4>
-                      <p className="text-white/70 text-xs truncate">
-                        {profile.city || profile.occupation || 'View Profile'}
+                      <p className="text-white/70 text-xs truncate mt-0.5 flex items-center gap-1">
+                        <Icons.MapPin size={10} />
+                        {profile.city || profile.country || 'Unknown'}
                       </p>
                     </div>
                   </div>
