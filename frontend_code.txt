@@ -1,4 +1,4 @@
-===== FILE: ./src/pages/AdminDashboardPage.jsx =====
+====== FILE: ./src/pages/AdminDashboardPage.jsx =====
 // src/pages/AdminDashboardPage.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';

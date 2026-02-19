@@ -1,3 +1,4 @@
+// ===== FILE: ./src/pages/DashboardPage.jsx =====
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
@@ -5,25 +6,24 @@ import { Icons } from '../components/Icons';
 import { interestAPI, chatAPI, profileAPI, searchAPI } from '../services/api';
 
 const quickActions = [
-  { name: 'Find Matches', path: '/search', icon: Icons.Search, color: 'bg-blue-500/10 text-blue-500' },
-  { name: 'Interests', path: '/interests', icon: Icons.Heart, color: 'bg-rose-500/10 text-rose-500' },
-  { name: 'Shortlist', path: '/shortlist', icon: Icons.Bookmark, color: 'bg-amber-500/10 text-amber-500' },
-  { name: 'Messages', path: '/chat', icon: Icons.MessageSquare, color: 'bg-green-500/10 text-green-500' },
+  { name: 'Find Matches', path: '/search',    icon: Icons.Search,       color: 'bg-blue-500/10 text-blue-500'  },
+  { name: 'Interests',    path: '/interests', icon: Icons.Heart,        color: 'bg-rose-500/10 text-rose-500'  },
+  { name: 'Shortlist',    path: '/shortlist', icon: Icons.Bookmark,     color: 'bg-amber-500/10 text-amber-500'},
+  { name: 'Messages',     path: '/chat',      icon: Icons.MessageSquare,color: 'bg-green-500/10 text-green-500'},
 ];
 
 const formatTimeAgo = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now - date;
+  const now  = new Date();
+  const diffMs   = now - date;
   const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
+  const diffHours= Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffMins  < 1)  return 'Just now';
+  if (diffMins  < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays  < 7)  return `${diffDays}d ago`;
   return date.toLocaleDateString();
 };
 
@@ -31,50 +31,34 @@ export default function DashboardPage() {
   const { user, refreshUser, hasPremiumAccess } = useAuth();
   const premium = hasPremiumAccess();
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState('');
 
   const [completionData, setCompletionData] = useState({
     percentage: 0,
     details: {
-      basicInfo: 0,
-      physicalAttributes: 0,
-      lifestyle: 0,
-      location: 0,
-      education: 0,
-      photos: 0,
-      partnerPreferences: 0,
+      basicInfo: 0, physicalAttributes: 0, lifestyle: 0,
+      location: 0, education: 0, photos: 0, partnerPreferences: 0,
     },
   });
 
   const [stats, setStats] = useState({
-    interestsReceived: 0,
-    interestsSent: 0,
-    pendingInterests: 0,
-    matches: 0,
-    conversations: 0,
-    unreadMessages: 0,
-    profileViews: 0,
-    shortlistCount: 0,
+    interestsReceived: 0, interestsSent: 0, pendingInterests: 0,
+    matches: 0, conversations: 0, unreadMessages: 0,
+    profileViews: 0, shortlistCount: 0,
   });
 
-  const [recentActivity, setRecentActivity] = useState([]);
+  const [recentActivity,    setRecentActivity]    = useState([]);
   const [suggestedProfiles, setSuggestedProfiles] = useState([]);
 
+  /* ---- loaders ---- */
   const loadProfileCompletion = useCallback(async () => {
     try {
       const response = await profileAPI.getCompletion();
-      setCompletionData({
-        percentage: response.percentage || 0,
-        details: response.details || {},
-      });
-
+      setCompletionData({ percentage: response.percentage || 0, details: response.details || {} });
       const profileResponse = await profileAPI.getMyProfile();
       if (profileResponse.profile) {
-        setStats((prev) => ({
-          ...prev,
-          profileViews: profileResponse.profile.profileViews || 0,
-        }));
+        setStats(prev => ({ ...prev, profileViews: profileResponse.profile.profileViews || 0 }));
       }
     } catch (err) {
       console.warn('Profile completion not available:', err?.message);
@@ -88,20 +72,13 @@ export default function DashboardPage() {
         interestAPI.getSent({ page: 1, limit: 1 }),
         interestAPI.getAccepted({ page: 1, limit: 1 }),
       ]);
-
       const receivedInterests = receivedRes.interests || [];
-      const interestsReceived = receivedRes.pagination?.total || receivedInterests.length;
-      const pendingInterests = receivedInterests.filter((i) => i.status === 'pending').length;
-
-      const interestsSent = sentRes.pagination?.total || 0;
-      const matches = matchesRes.pagination?.total || matchesRes.interests?.length || 0;
-
-      setStats((prev) => ({
+      setStats(prev => ({
         ...prev,
-        interestsReceived,
-        interestsSent,
-        pendingInterests,
-        matches,
+        interestsReceived: receivedRes.pagination?.total || receivedInterests.length,
+        interestsSent:     sentRes.pagination?.total || 0,
+        pendingInterests:  receivedInterests.filter(i => i.status === 'pending').length,
+        matches:           matchesRes.pagination?.total || matchesRes.interests?.length || 0,
       }));
     } catch (err) {
       console.warn('Interest stats not available:', err?.message);
@@ -112,16 +89,11 @@ export default function DashboardPage() {
     try {
       const convRes = await chatAPI.getConversations({ page: 1, limit: 100 });
       const conversations = convRes.conversations?.length || 0;
-
       try {
         const unreadRes = await chatAPI.getUnreadCount();
-        setStats((prev) => ({
-          ...prev,
-          conversations,
-          unreadMessages: unreadRes.unreadCount || 0,
-        }));
+        setStats(prev => ({ ...prev, conversations, unreadMessages: unreadRes.unreadCount || 0 }));
       } catch {
-        setStats((prev) => ({ ...prev, conversations }));
+        setStats(prev => ({ ...prev, conversations }));
       }
     } catch (err) {
       console.warn('Chat stats not available:', err?.message);
@@ -131,7 +103,7 @@ export default function DashboardPage() {
   const loadShortlistCount = useCallback(async () => {
     try {
       const shortlistRes = await interestAPI.getShortlist({ page: 1, limit: 1 });
-      setStats((prev) => ({
+      setStats(prev => ({
         ...prev,
         shortlistCount: shortlistRes.pagination?.total || shortlistRes.shortlist?.length || 0,
       }));
@@ -146,90 +118,35 @@ export default function DashboardPage() {
 
       const receivedRes = await interestAPI.getReceived({ page: 1, limit: 3 });
       if (receivedRes.interests?.length) {
-        receivedRes.interests.forEach((interest) => {
-          const senderName =
-            interest.senderProfile?.fullName ||
-            interest.senderProfileId?.fullName ||
-            'Someone';
-
+        receivedRes.interests.forEach(interest => {
+          const senderName = interest.senderProfile?.fullName || interest.senderProfileId?.fullName || 'Someone';
           const ts = new Date(interest.respondedAt || interest.createdAt || Date.now()).getTime();
-
           if (interest.status === 'pending') {
-            activities.push({
-              type: 'interest_received',
-              text: `${senderName} sent you an interest`,
-              time: formatTimeAgo(interest.createdAt),
-              ts,
-              icon: Icons.Heart,
-              color: 'text-rose-500',
-              link: '/interests',
-            });
+            activities.push({ type: 'interest_received', text: `${senderName} sent you an interest`, time: formatTimeAgo(interest.createdAt), ts, icon: Icons.Heart, color: 'text-rose-500', link: '/interests' });
           } else if (interest.status === 'accepted') {
-            activities.push({
-              type: 'interest_accepted',
-              text: `You connected with ${senderName}`,
-              time: formatTimeAgo(interest.respondedAt || interest.createdAt),
-              ts,
-              icon: Icons.UserCheck,
-              color: 'text-green-500',
-              link: '/interests',
-            });
+            activities.push({ type: 'interest_accepted', text: `You connected with ${senderName}`, time: formatTimeAgo(interest.respondedAt || interest.createdAt), ts, icon: Icons.UserCheck, color: 'text-green-500', link: '/interests' });
           }
         });
       }
 
       const sentRes = await interestAPI.getSent({ page: 1, limit: 3, status: 'accepted' });
       if (sentRes.interests?.length) {
-        sentRes.interests.forEach((interest) => {
-          const receiverName =
-            interest.receiverProfile?.fullName ||
-            interest.receiverProfileId?.fullName ||
-            'Someone';
-
+        sentRes.interests.forEach(interest => {
+          const receiverName = interest.receiverProfile?.fullName || interest.receiverProfileId?.fullName || 'Someone';
           const ts = new Date(interest.respondedAt || interest.createdAt || Date.now()).getTime();
-
-          activities.push({
-            type: 'interest_accepted_by',
-            text: `${receiverName} accepted your interest`,
-            time: formatTimeAgo(interest.respondedAt || interest.createdAt),
-            ts,
-            icon: Icons.HeartHandshake,
-            color: 'text-emerald-500',
-            link: '/interests',
-          });
+          activities.push({ type: 'interest_accepted_by', text: `${receiverName} accepted your interest`, time: formatTimeAgo(interest.respondedAt || interest.createdAt), ts, icon: Icons.HeartHandshake, color: 'text-emerald-500', link: '/interests' });
         });
       }
 
       activities.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-
       if (activities.length > 0) {
         setRecentActivity(activities.slice(0, 5));
       } else {
-        setRecentActivity([
-          {
-            type: 'info',
-            text: 'No recent activity yet',
-            time: '',
-            ts: 0,
-            icon: Icons.Info,
-            color: 'text-[var(--text-muted)]',
-            link: '/search',
-          },
-        ]);
+        setRecentActivity([{ type: 'info', text: 'No recent activity yet', time: '', ts: 0, icon: Icons.Info, color: 'text-[var(--text-muted)]', link: '/search' }]);
       }
     } catch (err) {
       console.warn('Recent activity not available:', err?.message);
-      setRecentActivity([
-        {
-          type: 'info',
-          text: 'Start exploring to see activity',
-          time: '',
-          ts: 0,
-          icon: Icons.Search,
-          color: 'text-[var(--text-muted)]',
-          link: '/search',
-        },
-      ]);
+      setRecentActivity([{ type: 'info', text: 'Start exploring to see activity', time: '', ts: 0, icon: Icons.Search, color: 'text-[var(--text-muted)]', link: '/search' }]);
     }
   }, []);
 
@@ -245,88 +162,42 @@ export default function DashboardPage() {
   const loadDashboardData = useCallback(async () => {
     setLoading(true);
     setError('');
-
     try {
       await refreshUser();
-
       const results = await Promise.allSettled([
-        loadProfileCompletion(),
-        loadInterestStats(),
-        loadChatStats(),
-        loadRecentActivity(),
-        loadSuggestedProfiles(),
-        loadShortlistCount(),
+        loadProfileCompletion(), loadInterestStats(), loadChatStats(),
+        loadRecentActivity(), loadSuggestedProfiles(), loadShortlistCount(),
       ]);
-
-      const errors = results.filter((r) => r.status === 'rejected');
-      if (errors.length > 0) console.warn('Some dashboard data failed to load:', errors);
+      const errors = results.filter(r => r.status === 'rejected');
+      if (errors.length > 0) console.warn('Some dashboard data failed:', errors);
     } catch (err) {
       console.error('Dashboard load error:', err);
       setError('Failed to load some dashboard data');
     } finally {
       setLoading(false);
     }
-  }, [
-    refreshUser,
-    loadProfileCompletion,
-    loadInterestStats,
-    loadChatStats,
-    loadRecentActivity,
-    loadSuggestedProfiles,
-    loadShortlistCount,
-  ]);
+  }, [refreshUser, loadProfileCompletion, loadInterestStats, loadChatStats, loadRecentActivity, loadSuggestedProfiles, loadShortlistCount]);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, [loadDashboardData]);
+  useEffect(() => { loadDashboardData(); }, [loadDashboardData]);
 
+  /* ---- derived values ---- */
   const completionPct = useMemo(() => {
     const pct = completionData.percentage || user?.completionPercentage || 0;
     return Math.min(100, Math.max(0, Math.round(pct)));
   }, [completionData, user]);
 
-  const displayName = useMemo(() => user?.fullName || user?.email?.split('@')[0] || 'User', [user]);
+  const displayName  = useMemo(() => user?.fullName || user?.email?.split('@')[0] || 'User', [user]);
+  const profileLink  = useMemo(() => (user?.profileId ? `/profile/${user.profileId}` : '/complete-profile'), [user]);
+  const hasProfile   = useMemo(() => !!user?.profileId || completionPct > 0, [user, completionPct]);
 
-  const profileLink = useMemo(() => (user?.profileId ? `/profile/${user.profileId}` : '/complete-profile'), [user]);
+  const statsCards = useMemo(() => [
+    { label: 'Interests Received', value: stats.interestsReceived, icon: Icons.Heart,         color: 'bg-rose-500/10 text-rose-500',   link: '/interests', badge: stats.pendingInterests > 0 ? stats.pendingInterests : null },
+    { label: 'Matches',            value: stats.matches,           icon: Icons.Users,         color: 'bg-green-500/10 text-green-500', link: '/interests' },
+    { label: 'Messages',           value: stats.conversations,     icon: Icons.MessageSquare, color: 'bg-blue-500/10 text-blue-500',   link: '/chat',      badge: stats.unreadMessages > 0 ? stats.unreadMessages : null },
+    { label: 'Profile Views',      value: stats.profileViews,      icon: Icons.Eye,           color: 'bg-purple-500/10 text-purple-500',link: profileLink },
+  ], [stats, profileLink]);
 
-  const hasProfile = useMemo(() => !!user?.profileId || completionPct > 0, [user, completionPct]);
-
-  const statsCards = useMemo(
-    () => [
-      {
-        label: 'Interests Received',
-        value: stats.interestsReceived,
-        icon: Icons.Heart,
-        color: 'bg-rose-500/10 text-rose-500',
-        link: '/interests',
-        badge: stats.pendingInterests > 0 ? stats.pendingInterests : null,
-      },
-      {
-        label: 'Matches',
-        value: stats.matches,
-        icon: Icons.Users,
-        color: 'bg-green-500/10 text-green-500',
-        link: '/interests',
-      },
-      {
-        label: 'Messages',
-        value: stats.conversations,
-        icon: Icons.MessageSquare,
-        color: 'bg-blue-500/10 text-blue-500',
-        link: '/chat',
-        badge: stats.unreadMessages > 0 ? stats.unreadMessages : null,
-      },
-      {
-        label: 'Profile Views',
-        value: stats.profileViews,
-        icon: Icons.Eye,
-        color: 'bg-purple-500/10 text-purple-500',
-        link: profileLink,
-      },
-    ],
-    [stats, profileLink]
-  );
-
+  /* ---- loading state ---- */
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -339,23 +210,22 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-6">
+      {/* ===== HEADER ===== */}
       <header>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 text-xs font-medium">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-600 text-xs font-medium">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               Online
             </span>
-
             {premium && (
-              <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-medium">
+              <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 text-xs font-medium">
                 <Icons.Crown size={12} />
                 Premium
               </span>
             )}
           </div>
-
           <div className="flex items-center gap-2">
             <button onClick={loadDashboardData} disabled={loading} className="btn-ghost text-sm">
               <Icons.RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
@@ -376,16 +246,16 @@ export default function DashboardPage() {
         </p>
       </header>
 
+      {/* ===== ERROR BANNER ===== */}
       {error && (
         <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3">
           <Icons.AlertCircle size={16} />
           <span>{error}</span>
-          <button onClick={loadDashboardData} className="ml-auto btn-ghost text-red-400">
-            Retry
-          </button>
+          <button onClick={loadDashboardData} className="ml-auto btn-ghost text-red-400">Retry</button>
         </div>
       )}
 
+      {/* ===== COMPLETE PROFILE PROMPT ===== */}
       {!hasProfile && (
         <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex items-center gap-3">
@@ -404,6 +274,7 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* ===== STATS GRID ===== */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statsCards.map((stat, i) => {
           const IconComponent = stat.icon;
@@ -422,33 +293,32 @@ export default function DashboardPage() {
                   {stat.value > 0 && <Icons.TrendingUp size={14} className="text-green-500" />}
                 </div>
               </div>
-              <p className="text-2xl lg:text-3xl font-bold mb-1">{stat.value}</p>
+              <p className="text-2xl lg:text-3xl font-bold mb-1 text-[var(--text-primary)]">{stat.value}</p>
               <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider">{stat.label}</p>
             </Link>
           );
         })}
       </div>
 
+      {/* ===== PROFILE STRENGTH + MEMBERSHIP ===== */}
       <div className="grid lg:grid-cols-3 gap-6">
+        {/* Profile Strength */}
         <div className="lg:col-span-2 card p-6">
           <div className="flex flex-col sm:flex-row items-center gap-6">
+            {/* FIX: SVG circle uses --border-color which is now defined for both themes */}
             <div className="relative w-28 h-28 lg:w-32 lg:h-32 flex-shrink-0">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border-color)" strokeWidth="8" />
                 <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  fill="none"
-                  stroke="var(--accent-500)"
-                  strokeWidth="8"
+                  cx="50" cy="50" r="40" fill="none"
+                  stroke="var(--accent-500)" strokeWidth="8"
                   strokeLinecap="round"
                   strokeDasharray={`${completionPct * 2.51} 251`}
                   className="transition-all duration-1000"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl lg:text-3xl font-bold">{completionPct}%</span>
+                <span className="text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">{completionPct}%</span>
                 <span className="text-[10px] text-[var(--text-muted)] uppercase">Complete</span>
               </div>
             </div>
@@ -456,23 +326,17 @@ export default function DashboardPage() {
             <div className="flex-1 text-center sm:text-left">
               <h3 className="text-lg lg:text-xl font-bold mb-2">Profile Strength</h3>
               <p className="text-sm text-[var(--text-secondary)] mb-4">
-                {completionPct < 30
-                  ? 'Complete your profile to get better matches!'
-                  : completionPct < 60
-                    ? 'Good progress! Add more details to improve visibility.'
-                    : completionPct < 90
-                      ? 'Almost there! A few more details will help.'
-                      : 'Excellent! Your profile is well optimized.'}
+                {completionPct < 30 ? 'Complete your profile to get better matches!'
+                  : completionPct < 60 ? 'Good progress! Add more details to improve visibility.'
+                  : completionPct < 90 ? 'Almost there! A few more details will help.'
+                  : 'Excellent! Your profile is well optimized.'}
               </p>
 
               {completionData.details && Object.keys(completionData.details).length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
                   {Object.entries(completionData.details).slice(0, 6).map(([key, value]) => (
                     <div key={key} className="flex items-center gap-2 text-xs">
-                      <div
-                        className={`w-2 h-2 rounded-full flex-shrink-0 ${value >= 100 ? 'bg-green-500' : value >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                          }`}
-                      />
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${value >= 100 ? 'bg-green-500' : value >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} />
                       <span className="text-[var(--text-muted)] capitalize truncate">
                         {key.replace(/([A-Z])/g, ' $1').trim()}
                       </span>
@@ -498,6 +362,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Membership */}
         <div className="card p-6">
           <div className="flex items-center gap-2 mb-4">
             <Icons.Crown size={16} className="text-[var(--accent-500)]" />
@@ -506,35 +371,33 @@ export default function DashboardPage() {
 
           <div className="p-4 rounded-xl bg-[var(--bg-tertiary)] mb-4">
             <div className="flex items-center gap-3">
-              <div className={`p-2.5 rounded-xl ${premium ? 'bg-amber-500/10 text-amber-500' : 'bg-[var(--surface-glass)]'}`}>
+              <div className={`p-2.5 rounded-xl ${premium ? 'bg-amber-500/10 text-amber-500' : 'bg-[var(--surface-glass-hover)] text-[var(--text-muted)]'}`}>
                 {premium ? <Icons.Crown size={20} /> : <Icons.User size={20} />}
               </div>
               <div>
-                <p className="font-semibold">{premium ? 'Premium' : 'Free Plan'}</p>
+                <p className="font-semibold text-[var(--text-primary)]">{premium ? 'Premium' : 'Free Plan'}</p>
                 <p className="text-xs text-[var(--text-muted)]">{premium ? 'All features unlocked' : 'Limited access'}</p>
               </div>
             </div>
           </div>
 
           <div className="space-y-3 mb-4">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-[var(--text-muted)]">Interests Sent</span>
-              <span className="font-semibold">{stats.interestsSent}</span>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-[var(--text-muted)]">Shortlisted</span>
-              <span className="font-semibold">{stats.shortlistCount}</span>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-[var(--text-muted)]">Active Chats</span>
-              <span className="font-semibold">{stats.conversations}</span>
-            </div>
+            {[
+              { label: 'Interests Sent', value: stats.interestsSent },
+              { label: 'Shortlisted',    value: stats.shortlistCount },
+              { label: 'Active Chats',   value: stats.conversations  },
+            ].map(item => (
+              <div key={item.label} className="flex justify-between items-center text-sm">
+                <span className="text-[var(--text-muted)]">{item.label}</span>
+                <span className="font-semibold text-[var(--text-primary)]">{item.value}</span>
+              </div>
+            ))}
           </div>
 
           {!premium && user?.role !== 'agency' && (
             <Link
               to="/pricing"
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-amber-500 text-sm font-medium hover:from-amber-500/15 hover:to-orange-500/15 transition-all"
+              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-amber-600 text-sm font-medium hover:from-amber-500/15 hover:to-orange-500/15 transition-all"
             >
               <Icons.Zap size={16} />
               <span>Upgrade to Premium</span>
@@ -543,22 +406,22 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* ===== QUICK ACTIONS + RECENT ACTIVITY ===== */}
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <h3 className="font-semibold mb-4 flex items-center gap-2">
             <Icons.Zap size={16} className="text-[var(--accent-500)]" />
             Quick Actions
           </h3>
-
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {quickActions.map((action) => {
+            {quickActions.map(action => {
               const IconComponent = action.icon;
               return (
                 <Link key={action.path} to={action.path} className="card p-4 lg:p-5 hover:scale-105 transition-transform group">
                   <div className={`p-3 rounded-xl ${action.color} mb-3 w-fit group-hover:scale-110 transition-transform`}>
                     <IconComponent size={20} />
                   </div>
-                  <h4 className="text-sm font-medium">{action.name}</h4>
+                  <h4 className="text-sm font-medium text-[var(--text-primary)]">{action.name}</h4>
                 </Link>
               );
             })}
@@ -570,7 +433,6 @@ export default function DashboardPage() {
             <Icons.Clock size={16} className="text-[var(--accent-500)]" />
             Recent Activity
           </h3>
-
           <div className="card p-4">
             <div className="space-y-3">
               {recentActivity.map((activity, i) => {
@@ -579,20 +441,19 @@ export default function DashboardPage() {
                   <Link
                     key={i}
                     to={activity.link || '#'}
-                    className="flex items-start gap-3 p-2 -mx-2 rounded-lg hover:bg-[var(--surface-glass)] transition-colors"
+                    className="flex items-start gap-3 p-2 -mx-2 rounded-lg hover:bg-[var(--surface-glass-hover)] transition-colors"
                   >
                     <div className={`p-2 rounded-lg bg-[var(--surface-glass)] flex-shrink-0 ${activity.color || ''}`}>
                       <IconComponent size={14} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm truncate">{activity.text}</p>
+                      <p className="text-sm truncate text-[var(--text-secondary)]">{activity.text}</p>
                       {activity.time && <p className="text-xs text-[var(--text-muted)]">{activity.time}</p>}
                     </div>
                   </Link>
                 );
               })}
             </div>
-
             <Link
               to="/interests"
               className="flex items-center justify-center gap-2 text-sm text-[var(--accent-500)] font-medium pt-3 mt-3 border-t border-[var(--border-primary)]"
@@ -604,6 +465,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* ===== SUGGESTED PROFILES ===== */}
       {suggestedProfiles.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-4">
@@ -616,34 +478,29 @@ export default function DashboardPage() {
               <Icons.ChevronRight size={14} />
             </Link>
           </div>
-
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {suggestedProfiles.map((profile) => {
-              const photoUrl = profile.photos?.find((p) => p.isProfile)?.url || profile.photos?.[0]?.url;
-              const initial = (profile.fullName || 'U').charAt(0).toUpperCase();
-
+            {suggestedProfiles.map(profile => {
+              const photoUrl = profile.photos?.find(p => p.isProfile)?.url || profile.photos?.[0]?.url;
+              const initial  = (profile.fullName || 'U').charAt(0).toUpperCase();
               return (
                 <Link key={profile._id} to={`/profile/${profile.profileId || profile._id}`} className="card overflow-hidden group">
                   <div className="aspect-[3/4] relative">
                     {photoUrl ? (
-                      <img
-                        src={photoUrl}
-                        alt=""
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
+                      <img src={photoUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-[var(--accent-500)]/20 to-[var(--accent-700)]/20 flex items-center justify-center">
                         <span className="text-4xl font-bold text-[var(--text-muted)]">{initial}</span>
                       </div>
                     )}
-
+                    {/* Always dark gradient so white text is readable */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-3">
                       <h4 className="text-white font-semibold truncate">
-                        {profile.fullName}
-                        {profile.age ? `, ${profile.age}` : ''}
+                        {profile.fullName}{profile.age ? `, ${profile.age}` : ''}
                       </h4>
-                      <p className="text-white/70 text-xs truncate">{profile.city || profile.occupation || 'View Profile'}</p>
+                      <p className="text-white/70 text-xs truncate">
+                        {profile.city || profile.occupation || 'View Profile'}
+                      </p>
                     </div>
                   </div>
                 </Link>
