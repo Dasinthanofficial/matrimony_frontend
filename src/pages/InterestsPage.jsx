@@ -1,4 +1,3 @@
-// ===== FILE: ./src/pages/InterestsPage.jsx =====
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -12,13 +11,6 @@ const tabs = [
   { id: 'accepted', label: 'Connected', icon: Icons.HeartHandshake, color: 'icon-box-success' },
 ];
 
-const normalizeInterest = (interest, currentUserId) => ({
-  ...interest,
-  currentUserId,
-  senderProfile: interest.senderProfile || interest.senderProfileId || null,
-  receiverProfile: interest.receiverProfile || interest.receiverProfileId || null,
-});
-
 export default function InterestsPage() {
   const [activeTab, setActiveTab] = useState('received');
   const [interests, setInterests] = useState([]);
@@ -30,6 +22,7 @@ export default function InterestsPage() {
 
   useEffect(() => {
     loadInterests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const loadInterests = async () => {
@@ -47,7 +40,12 @@ export default function InterestsPage() {
       }
 
       const list = response?.interests || [];
-      setInterests(list.map((i) => normalizeInterest(i, currentUserId)));
+      setInterests(list.map((i) => ({
+        ...i,
+        currentUserId,
+        senderProfile: i.senderProfile || i.senderProfileId || null,
+        receiverProfile: i.receiverProfile || i.receiverProfileId || null,
+      })));
     } catch (err) {
       setError('Failed to load interests. Please try again.');
       console.error(err);
@@ -58,13 +56,9 @@ export default function InterestsPage() {
 
   const handleAction = async (action, interestId) => {
     try {
-      if (action === 'accept') {
-        await interestAPI.accept(interestId);
-      } else if (action === 'decline') {
-        await interestAPI.decline(interestId, 'Not interested');
-      } else if (action === 'withdraw') {
-        await interestAPI.withdraw(interestId);
-      }
+      if (action === 'accept') await interestAPI.accept(interestId);
+      else if (action === 'decline') await interestAPI.decline(interestId, 'Not interested');
+      else if (action === 'withdraw') await interestAPI.withdraw(interestId);
       loadInterests();
     } catch (err) {
       alert(err.message || 'Action failed. Please try again.');
@@ -74,11 +68,26 @@ export default function InterestsPage() {
   const getEmptyStateContent = () => {
     switch (activeTab) {
       case 'received':
-        return { icon: Icons.Inbox, title: 'No Interests Received', description: 'When someone sends you an interest request, it will appear here.', action: { label: 'Find Matches', path: '/search' } };
+        return {
+          icon: Icons.Inbox,
+          title: 'No Interests Received',
+          description: 'When someone sends you an interest request, it will appear here. Complete your profile to get more attention!',
+          action: { label: 'Find Matches', path: '/search' }
+        };
       case 'sent':
-        return { icon: Icons.Send, title: 'No Interests Sent', description: 'Start connecting with people by sending interest requests.', action: { label: 'Browse Profiles', path: '/search' } };
+        return {
+          icon: Icons.Send,
+          title: 'No Interests Sent',
+          description: 'Start connecting with people by browsing profiles and sending interest requests.',
+          action: { label: 'Browse Profiles', path: '/search' }
+        };
       case 'accepted':
-        return { icon: Icons.HeartHandshake, title: 'No Connections Yet', description: "When you and someone else both accept each other's interest, you'll be connected.", action: { label: 'Find Matches', path: '/search' } };
+        return {
+          icon: Icons.HeartHandshake,
+          title: 'No Connections Yet',
+          description: "When you and someone else both accept each other's interest, you'll be connected.",
+          action: { label: 'Find Matches', path: '/search' }
+        };
       default:
         return { icon: Icons.Heart, title: 'No Results', description: 'Nothing to show here.', action: null };
     }
@@ -88,125 +97,131 @@ export default function InterestsPage() {
   const EmptyIcon = emptyState.icon;
 
   return (
-    <div className="p-2 sm:p-4 lg:p-6">
+    <div className="w-full p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <header className="mb-6 sm:mb-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="icon-box-md icon-box-accent hidden sm:flex">
-              <Icons.Heart size={20} />
+      <header className="mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--accent-500)] to-[var(--accent-700)] flex items-center justify-center shadow-lg shadow-[var(--accent-500)]/20 hidden sm:flex">
+              <Icons.Heart size={24} className="text-white" />
             </div>
             <div>
-              <h1 className="heading-md">Interests</h1>
-              <p className="text-sm text-[var(--text-muted)]">Manage your connections</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">Interests</h1>
+              <p className="text-sm text-[var(--text-secondary)]">Manage your connections</p>
             </div>
           </div>
-          <Link to="/dashboard" className="btn-secondary py-2 px-3 text-xs">
+          <Link to="/dashboard" className="btn-secondary py-2 px-4 text-sm">
             <Icons.ChevronLeft size={16} />
             <span>Dashboard</span>
           </Link>
         </div>
 
-        {/* ✅ FIX: Stats grid — stacks on small screens */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+        {/* Stats Grid - 3 cols on all screens, responsive padding/text */}
+        <div className="grid grid-cols-3 gap-3 sm:gap-6">
           {tabs.map((tab) => {
             const TabIcon = tab.icon;
             const count = activeTab === tab.id ? interests.length : '—';
+            const isActive = activeTab === tab.id;
+
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`card p-3 sm:p-4 text-left transition-all ${
-                  activeTab === tab.id ? 'border-[var(--accent-500)]/50 shadow-lg' : 'hover:border-[var(--border-secondary)]'
-                }`}
+                className={`
+                  relative overflow-hidden rounded-xl sm:rounded-2xl p-3 sm:p-5 text-left transition-all duration-300 border
+                  ${isActive 
+                    ? 'border-[var(--accent-500)]/30 bg-[var(--accent-500)]/5 shadow-lg shadow-[var(--accent-500)]/5' 
+                    : 'border-[var(--border-primary)] bg-[var(--surface-glass)] hover:border-[var(--border-secondary)] hover:bg-[var(--surface-glass-hover)]'
+                  }
+                `}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <div className={`icon-box-sm ${activeTab === tab.id ? tab.color : ''}`}>
-                    <TabIcon size={16} />
+                {isActive && (
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-[var(--accent-500)]" />
+                )}
+                
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <div className={`
+                    p-1.5 sm:p-2 rounded-lg sm:rounded-xl 
+                    ${isActive ? 'bg-[var(--accent-500)]/10 text-[var(--accent-500)]' : 'bg-[var(--surface-glass-active)] text-[var(--text-muted)]'}
+                  `}>
+                    <TabIcon size={18} className="sm:w-6 sm:h-6" />
                   </div>
-                  {activeTab === tab.id && <span className="badge-accent text-[10px]">Active</span>}
+                  {isActive && (
+                    <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full bg-[var(--accent-500)]/10 text-[var(--accent-500)] text-[10px] font-bold uppercase tracking-wider">
+                      Active
+                    </span>
+                  )}
                 </div>
-                <p className="text-xl sm:text-2xl font-bold">{count}</p>
-                <p className="text-xs text-[var(--text-muted)]">{tab.label}</p>
+                
+                <p className="text-xl sm:text-3xl font-bold text-[var(--text-primary)] mb-0.5">{count}</p>
+                <p className="text-[10px] sm:text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">
+                  {tab.label}
+                </p>
               </button>
             );
           })}
         </div>
       </header>
 
-      {/* Tabs */}
-      <div className="mb-6">
-        {/* ✅ FIX: horizontal scroll on very small screens */}
-        <div className="flex gap-2 p-1.5 rounded-xl card w-fit max-w-full overflow-x-auto">
-          {tabs.map((tab) => {
-            const TabIcon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? 'bg-gradient-to-r from-[var(--accent-500)] to-[var(--accent-700)] text-white shadow-lg'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-glass)]'
-                }`}
-              >
-                <TabIcon size={16} />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Error State */}
       {error && (
-        <div className="mb-6 p-3 sm:p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
-          <div className="icon-box-sm icon-box-error flex-shrink-0">
-            <Icons.AlertCircle size={16} />
+        <div className="mb-8 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
+          <div className="icon-box-sm bg-red-500/10 text-red-500 flex-shrink-0">
+            <Icons.AlertCircle size={18} />
           </div>
-          <p className="text-sm text-red-500 flex-1">{error}</p>
-          <button onClick={loadInterests} className="btn-ghost text-red-500 text-sm flex-shrink-0">
+          <p className="text-sm text-red-400 flex-1">{error}</p>
+          <button onClick={loadInterests} className="btn-ghost text-red-500 text-sm hover:bg-red-500/10 px-3 py-1.5 rounded-lg">
             <Icons.RefreshCw size={14} />
-            <span className="hidden sm:inline">Retry</span>
+            <span className="hidden sm:inline ml-2">Retry</span>
           </button>
         </div>
       )}
 
       {/* Content */}
       {loading ? (
-        <div className="card p-12 sm:p-16">
-          <div className="flex flex-col items-center justify-center">
-            <div className="spinner-lg mb-4" />
-            <p className="text-sm text-[var(--text-muted)]">Loading interests...</p>
-          </div>
+        <div className="card p-16 sm:p-24 flex flex-col items-center justify-center">
+          <div className="spinner-lg mb-4 text-[var(--accent-500)]" />
+          <p className="text-sm font-medium text-[var(--text-muted)] animate-pulse">Loading interests...</p>
         </div>
       ) : interests.length === 0 ? (
-        <div className="card p-8 sm:p-12 lg:p-16 text-center">
-          <div className="icon-box-xl mx-auto mb-6 opacity-50">
-            <EmptyIcon size={32} />
+        <div className="card p-8 sm:p-16 lg:p-24 text-center">
+          <div className="max-w-md mx-auto">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 sm:mb-8 rounded-full bg-[var(--surface-glass)] flex items-center justify-center border border-[var(--border-primary)] shadow-xl">
+              <EmptyIcon size={32} className="sm:w-12 sm:h-12 text-[var(--text-muted)] opacity-40" />
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] mb-3">{emptyState.title}</h3>
+            <p className="text-sm sm:text-base text-[var(--text-secondary)] mb-8 leading-relaxed">
+              {emptyState.description}
+            </p>
+            {emptyState.action && (
+              <Link 
+                to={emptyState.action.path} 
+                className="btn-primary inline-flex items-center gap-2 px-6 py-3 text-sm sm:text-base"
+              >
+                <Icons.Search size={18} />
+                <span>{emptyState.action.label}</span>
+              </Link>
+            )}
           </div>
-          <h3 className="heading-sm mb-2">{emptyState.title}</h3>
-          <p className="text-[var(--text-secondary)] max-w-md mx-auto mb-6">{emptyState.description}</p>
-          {emptyState.action && (
-            <Link to={emptyState.action.path} className="btn-primary">
-              <Icons.Search size={16} />
-              <span>{emptyState.action.label}</span>
-            </Link>
-          )}
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <p className="text-sm text-[var(--text-muted)]">
-              Showing <span className="font-medium text-[var(--text-primary)]">{interests.length}</span> {activeTab}
+              Showing <span className="font-bold text-[var(--text-primary)]">{interests.length}</span> {activeTab} interest{interests.length !== 1 ? 's' : ''}
             </p>
-            <button onClick={loadInterests} disabled={loading} className="btn-ghost text-sm">
+            <button 
+              onClick={loadInterests} 
+              disabled={loading} 
+              className="btn-ghost text-xs sm:text-sm hover:bg-[var(--surface-glass-hover)] px-3 py-1.5 rounded-lg"
+            >
               <Icons.RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-              <span className="hidden sm:inline">Refresh</span>
+              <span className="ml-2 hidden sm:inline">Refresh</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+          {/* Grid: 1 col mobile, 2 col tablet, 3 col desktop */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
             {interests.map((interest) => (
               <InterestCard
                 key={interest._id}
