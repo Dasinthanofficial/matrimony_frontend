@@ -1,4 +1,3 @@
-// ===== FIXED FILE: ./src/components/ProfileCard.jsx =====
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -9,17 +8,17 @@ export default function ProfileCard({ profile, onInterest, onShortlist }) {
   const navigate = useNavigate();
 
   const isPremiumUser = hasPremiumAccess();
-
+  
+  // Find the main photo, or the first photo, or null if none
   const mainPhoto = profile.photos?.find((p) => p.isProfile)?.url || profile.photos?.[0]?.url;
   const initials = (profile.fullName || 'U').charAt(0).toUpperCase();
 
   const targetUserId = profile.userId?._id || profile.userId || profile.id;
-
   const profileUrl = `/profile/${profile.profileId || profile._id}`;
 
   const handleAction = (e, action) => {
-    e.stopPropagation();
-    if (!user) return navigate('/login');
+    e.stopPropagation(); // Prevent card click when clicking a button
+    if (!user) return navigate('/login', { state: { from: { pathname: profileUrl } } });
     if (!targetUserId) return;
     action(targetUserId);
   };
@@ -28,16 +27,11 @@ export default function ProfileCard({ profile, onInterest, onShortlist }) {
 
   return (
     <div
-      className="card-interactive overflow-hidden group"
+      className="card group overflow-hidden cursor-pointer shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
       onClick={handleNavigate}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleNavigate();
-        }
-      }}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleNavigate(); }}
     >
       <div className="relative aspect-[3/4]">
         {mainPhoto && !profile.photosLocked ? (
@@ -45,72 +39,68 @@ export default function ProfileCard({ profile, onInterest, onShortlist }) {
             src={mainPhoto}
             alt={`${profile.fullName || 'Profile'} photo`}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[var(--accent-500)]/20 to-[var(--accent-700)]/20 flex items-center justify-center">
-            <span className="text-5xl sm:text-6xl font-bold text-[var(--text-muted)]">{initials}</span>
+          <div className="w-full h-full bg-gradient-to-br from-[var(--surface-glass)] to-transparent flex items-center justify-center">
+            <span className="text-6xl font-bold text-[var(--text-muted)] opacity-50">{initials}</span>
           </div>
         )}
 
         <div className="image-overlay" />
 
-        <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex justify-between items-start">
+        <div className="absolute top-3 left-3 right-3 flex justify-between items-start gap-2">
           {profile.isVerified && (
-            <span className="badge-success">
+            <span className="badge-success shadow-md">
               <Icons.Check size={12} />
               <span className="hidden sm:inline">Verified</span>
             </span>
           )}
           {isPremiumUser && profile.matchScore != null && (
-            <span className="badge-accent">{Math.round(profile.matchScore)}%</span>
+            <span className="badge-accent shadow-md ml-auto">{Math.round(profile.matchScore)}% Match</span>
           )}
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
-          <h3 className="text-lg sm:text-xl font-bold text-white mb-0.5 truncate">
-            {profile.fullName}
-            {profile.age ? `, ${profile.age}` : ''}
-          </h3>
+        <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
+          <div>
+            <h3 className="text-xl font-bold text-white truncate">
+              {profile.fullName || 'User'}, {profile.age || 'N/A'}
+            </h3>
+            <div className="flex items-center gap-1.5 text-sm text-white/80">
+              <Icons.MapPin size={14} />
+              <span className="truncate">{profile.city || profile.country || 'Location hidden'}</span>
+            </div>
+          </div>
 
-          {/* ✅ Agency tag */}
           {profile.agencyNameTag && (
-            <div className="mb-2">
+            <div>
               <span className="badge-accent text-[10px]">By {profile.agencyNameTag}</span>
             </div>
           )}
-
-          <div className="flex items-center gap-1.5 text-xs sm:text-sm text-white/80 mb-2 sm:mb-3">
-            <Icons.MapPin size={14} />
-            <span className="truncate">{profile.city || 'Location hidden'}</span>
-          </div>
-
-          {isPremiumUser ? (
-            <p className="text-xs sm:text-sm text-[var(--accent-500)] font-medium mb-2 sm:mb-3 truncate">
-              {profile.occupation || profile.education || 'Member'}
-            </p>
-          ) : (
-            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-white/60 mb-2 sm:mb-3">
+          
+          {!isPremiumUser && (
+            <div className="flex items-center gap-1.5 text-xs text-amber-300/80">
               <Icons.Lock size={12} />
-              <span>Upgrade to see more</span>
+              <span>Upgrade to see occupation</span>
             </div>
           )}
-
-          <div className="flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 md:translate-y-2 md:group-hover:translate-y-0">
+          
+          <div className="flex gap-2 pt-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
             <button
               onClick={(e) => handleAction(e, onShortlist)}
-              className="flex-1 py-2.5 sm:py-2 rounded-lg bg-white/10 backdrop-blur-sm text-white text-xs font-medium flex items-center justify-center gap-1.5 hover:bg-white/20 transition-colors active:scale-95"
+              className="flex-1 btn-secondary bg-white/10 text-white backdrop-blur-sm border-white/20 hover:bg-white/20"
               disabled={!targetUserId}
             >
-              <Icons.Bookmark size={14} />
-              Save
+              <Icons.Bookmark size={16} />
+              <span>Save</span>
             </button>
             <button
               onClick={(e) => handleAction(e, onInterest)}
-              className="flex-1 py-2.5 sm:py-2 rounded-lg bg-gradient-to-r from-[var(--accent-500)] to-[var(--accent-700)] text-white text-xs font-medium flex items-center justify-center gap-1.5 hover:shadow-lg transition-all active:scale-95"
+              className="flex-1 btn-primary"
               disabled={!targetUserId}
             >
-              <Icons.Heart size={14} />
-              Connect
+              <Icons.Heart size={16} />
+              <span>Connect</span>
             </button>
           </div>
         </div>
