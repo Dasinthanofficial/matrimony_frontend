@@ -1,4 +1,3 @@
-// ===== FIXED FILE: ./src/components/ChatInterface.jsx =====
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import MessageBubble from './MessageBubble';
 import { socketEvents } from '../services/socket';
@@ -14,6 +13,7 @@ export default function ChatInterface({
   onTyping,
   loading,
   currentUserId,
+  onBack // Prop for mobile back navigation
 }) {
   const [messageContent, setMessageContent] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -23,14 +23,19 @@ export default function ChatInterface({
   const typingTimeoutRef = useRef(null);
   const inputRef = useRef(null);
 
+  // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, otherUserTyping]);
 
+  // Focus input on load (Desktop only)
   useEffect(() => {
-    inputRef.current?.focus();
+    if (window.innerWidth > 768) {
+        inputRef.current?.focus();
+    }
   }, [conversationId]);
 
+  // Socket Typing Listeners
   useEffect(() => {
     const handleUserTyping = (data) => {
       if (!data) return;
@@ -53,12 +58,12 @@ export default function ChatInterface({
     };
   }, [currentUserId, conversationId]);
 
+  // Reset state on conversation change
   useEffect(() => {
     setOtherUserTyping(false);
     setMessageContent('');
     setIsTyping(false);
     setSending(false);
-
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = null;
@@ -70,14 +75,8 @@ export default function ChatInterface({
     const content = messageContent.trim();
     if (!content || sending) return;
 
-    // ✅ FIX: Prevent double submit
     setSending(true);
     setMessageContent('');
-
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = null;
-    }
     setIsTyping(false);
     onTyping?.(false);
 
@@ -85,14 +84,16 @@ export default function ChatInterface({
       await onSendMessage(content);
     } finally {
       setSending(false);
-      inputRef.current?.focus();
+      // Keep focus on desktop
+      if (window.innerWidth > 768) {
+          inputRef.current?.focus();
+      }
     }
   };
 
   const handleInputChange = useCallback(
     (e) => {
       const value = e.target.value;
-      // ✅ FIX: Enforce max length in handler as well
       if (value.length > MAX_MESSAGE_LENGTH) return;
       setMessageContent(value);
 
@@ -115,81 +116,91 @@ export default function ChatInterface({
   const otherUserInitial = otherUserName.charAt(0).toUpperCase();
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-[var(--border-primary)] bg-[var(--surface-glass)]">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-            <div className="relative flex-shrink-0">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-[var(--accent-500)] to-[var(--accent-700)] flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-lg overflow-hidden">
-                {otherUser?.photoUrl ? (
-                  <img
-                    src={otherUser.photoUrl}
-                    alt={otherUserName}
-                    className="w-full h-full rounded-2xl object-cover"
-                  />
-                ) : (
-                  otherUserInitial
-                )}
-              </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-3.5 sm:h-3.5 bg-green-500 rounded-full border-2 border-[var(--bg-primary)]" />
-            </div>
+    <div className="flex flex-col h-full w-full">
+      
+      {/* ===== CHAT HEADER ===== */}
+      <div className="px-4 py-3 border-b border-[var(--border-primary)] bg-[var(--bg-secondary)]/80 backdrop-blur-md sticky top-0 z-30 shadow-sm flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {/* Mobile Back Button */}
+          <button 
+            onClick={onBack}
+            className="md:hidden p-2 -ml-2 rounded-full hover:bg-[var(--surface-glass-active)] text-[var(--text-muted)] transition-colors"
+          >
+            <Icons.ChevronLeft size={24} />
+          </button>
 
-            <div className="min-w-0">
-              <h3 className="font-bold text-[var(--text-primary)] text-base sm:text-lg tracking-tight truncate">
-                {otherUserName}
-              </h3>
-              <p className="text-[10px] sm:text-xs font-semibold text-[var(--accent-500)] uppercase tracking-wider">
-                {otherUserTyping ? (
-                  <span className="flex items-center gap-1">
-                    <span className="animate-pulse">Typing</span>
-                    <span className="flex gap-0.5">
-                      <span className="w-1 h-1 bg-[var(--accent-500)] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-1 h-1 bg-[var(--accent-500)] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-1 h-1 bg-[var(--accent-500)] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </span>
-                  </span>
-                ) : (
-                  'Online'
-                )}
-              </p>
+          {/* Avatar */}
+          <div className="relative flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[var(--accent-500)] to-[var(--accent-700)] flex items-center justify-center text-white font-bold text-base shadow-md overflow-hidden ring-2 ring-[var(--bg-primary)]">
+              {otherUser?.photoUrl ? (
+                <img src={otherUser.photoUrl} alt={otherUserName} className="w-full h-full object-cover" />
+              ) : (
+                otherUserInitial
+              )}
             </div>
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[var(--bg-primary)] shadow-sm" />
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            <button className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[var(--surface-glass)] border border-[var(--border-primary)] flex items-center justify-center text-[var(--text-muted)] hover:bg-[var(--surface-glass-hover)] hover:text-[var(--text-primary)] transition-all">
-              <Icons.Phone size={16} />
-            </button>
-            <button className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[var(--surface-glass)] border border-[var(--border-primary)] flex items-center justify-center text-[var(--text-muted)] hover:bg-[var(--surface-glass-hover)] hover:text-[var(--text-primary)] transition-all">
-              <Icons.MoreVertical size={16} />
-            </button>
+          {/* User Info */}
+          <div className="min-w-0 flex flex-col">
+            <h3 className="font-bold text-[var(--text-primary)] text-sm md:text-base leading-tight truncate cursor-pointer hover:underline decoration-[var(--accent-500)] underline-offset-2">
+              {otherUserName}
+            </h3>
+            <p className="text-[11px] font-medium leading-tight h-3.5 mt-0.5">
+              {otherUserTyping ? (
+                <span className="flex items-center gap-1 text-[var(--accent-500)] animate-pulse">
+                  Typing...
+                </span>
+              ) : (
+                <span className="text-[var(--text-muted)]">Active Now</span>
+              )}
+            </p>
           </div>
+        </div>
+
+        {/* Header Actions */}
+        <div className="flex items-center gap-1">
+          <button className="p-2 rounded-full hover:bg-[var(--surface-glass-active)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+            <Icons.Phone size={20} />
+          </button>
+          <button className="p-2 rounded-full hover:bg-[var(--surface-glass-active)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+            <Icons.Video size={20} />
+          </button>
+          <button className="p-2 rounded-full hover:bg-[var(--surface-glass-active)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+            <Icons.Info size={20} />
+          </button>
         </div>
       </div>
 
-      {/* Messages area */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 custom-scrollbar">
+      {/* ===== MESSAGES SCROLL AREA ===== */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar scroll-smooth">
         {loading ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-center space-y-4">
-              <div className="spinner-lg mx-auto" />
-              <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Loading messages...</p>
-            </div>
+            <div className="spinner-lg opacity-50" />
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center space-y-4 p-6">
-              <div className="icon-box-lg mx-auto opacity-40">
-                <Icons.MessageCircle size={28} />
+          <div className="flex items-center justify-center h-full pb-20">
+            <div className="text-center space-y-4 p-8 rounded-3xl bg-[var(--surface-glass)]/50 border border-[var(--border-subtle)] backdrop-blur-sm max-w-sm mx-auto animate-in zoom-in duration-300">
+              <div className="w-16 h-16 rounded-full bg-[var(--accent-500)]/10 flex items-center justify-center mx-auto ring-1 ring-[var(--accent-500)]/20">
+                 <Icons.MessageSquare size={32} className="text-[var(--accent-500)]" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-[var(--text-muted)] mb-1">No Messages Yet</h4>
-                <p className="text-xs text-[var(--text-muted)]">Start the conversation!</p>
+                <h4 className="font-bold text-lg text-[var(--text-primary)]">Say Hello!</h4>
+                <p className="text-sm text-[var(--text-secondary)] mt-1">
+                  You matched with {otherUserName.split(' ')[0]}. Break the ice now!
+                </p>
               </div>
             </div>
           </div>
         ) : (
           <>
+            {/* Date Divider */}
+            <div className="flex justify-center sticky top-0 z-10 pointer-events-none">
+              <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest bg-[var(--bg-primary)]/80 backdrop-blur-md px-3 py-1 rounded-full border border-[var(--border-subtle)] shadow-sm">
+                Today
+              </span>
+            </div>
+
             {messages.map((message, index) => {
               const senderId = message.senderId?._id || message.senderId;
               const isOwn = senderId?.toString() === currentUserId?.toString();
@@ -205,69 +216,76 @@ export default function ChatInterface({
             })}
 
             {otherUserTyping && (
-              <div className="flex items-center gap-3 px-2 sm:px-4">
-                <div className="w-8 h-8 rounded-full bg-[var(--surface-glass)] border border-[var(--border-primary)] flex items-center justify-center text-xs font-bold text-[var(--text-muted)]">
-                  {otherUserInitial}
+              <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2">
+                <div className="w-8 h-8 rounded-full bg-[var(--surface-glass)] border border-[var(--border-primary)] flex items-center justify-center overflow-hidden">
+                   {otherUser?.photoUrl ? (
+                      <img src={otherUser.photoUrl} className="w-full h-full object-cover" alt="" />
+                   ) : (
+                      <span className="text-xs font-bold">{otherUserInitial}</span>
+                   )}
                 </div>
-                <div className="bg-[var(--surface-glass)] rounded-2xl px-4 py-3 border border-[var(--border-primary)]">
+                <div className="bg-[var(--surface-glass)] rounded-2xl rounded-tl-none px-4 py-3 border border-[var(--border-primary)] shadow-sm">
                   <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-[var(--text-muted)] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-[var(--text-muted)] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-[var(--text-muted)] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span className="w-1.5 h-1.5 bg-[var(--text-muted)] rounded-full animate-bounce delay-0" />
+                    <span className="w-1.5 h-1.5 bg-[var(--text-muted)] rounded-full animate-bounce delay-150" />
+                    <span className="w-1.5 h-1.5 bg-[var(--text-muted)] rounded-full animate-bounce delay-300" />
                   </div>
                 </div>
               </div>
             )}
 
-            <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} className="h-2" />
           </>
         )}
       </div>
 
-      {/* ✅ FIX: Input area — fixed JSX syntax error, added double-submit guard */}
-      <div className="p-2 sm:p-4 border-t border-[var(--border-primary)] bg-[var(--surface-glass)]">
-        <form onSubmit={handleSendMessage} className="flex items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[var(--surface-glass)] border border-[var(--border-primary)] flex items-center justify-center text-[var(--text-muted)] hover:bg-[var(--surface-glass-hover)] hover:text-[var(--text-primary)] transition-all flex-shrink-0"
+      {/* ===== INPUT AREA ===== */}
+      <div className="p-4 bg-[var(--bg-primary)] border-t border-[var(--border-primary)]">
+        <div className="max-w-4xl mx-auto w-full">
+          <form 
+            onSubmit={handleSendMessage} 
+            className="flex items-end gap-2 p-2 bg-[var(--surface-glass)] border border-[var(--border-primary)] rounded-[24px] shadow-sm focus-within:ring-2 focus-within:ring-[var(--accent-500)]/30 focus-within:border-[var(--accent-500)] transition-all"
           >
-            <Icons.Plus size={18} />
-          </button>
+            <button
+              type="button"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--text-muted)] hover:bg-[var(--surface-glass-active)] hover:text-[var(--text-primary)] transition-colors flex-shrink-0"
+            >
+              <Icons.Plus size={22} />
+            </button>
 
-          <div className="flex-1 relative">
             <input
               ref={inputRef}
               type="text"
               value={messageContent}
               onChange={handleInputChange}
               maxLength={MAX_MESSAGE_LENGTH}
-              placeholder="Type your message..."
-              className="w-full px-4 py-3 sm:px-5 sm:py-4 rounded-xl sm:rounded-2xl bg-[var(--surface-glass)] border border-[var(--border-primary)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-500)]/50 focus:ring-2 focus:ring-[var(--accent-500)]/20 transition-all text-sm"
+              placeholder="Type a message..."
+              className="flex-1 py-2.5 bg-transparent border-none text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-0 min-h-[44px] max-h-32 text-sm md:text-base"
               disabled={sending}
+              autoComplete="off"
             />
-            {/* ✅ FIX: Character count near limit */}
-            {messageContent.length > 1800 && (
-              <span
-                className={`absolute right-3 bottom-1 text-[10px] font-medium ${messageContent.length > 1950 ? 'text-red-400' : 'text-[var(--text-muted)]'
-                  }`}
-              >
-                {messageContent.length}/{MAX_MESSAGE_LENGTH}
-              </span>
-            )}
-          </div>
 
-          <button
-            type="submit"
-            disabled={!messageContent.trim() || sending}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[var(--accent-500)] to-[var(--accent-700)] flex items-center justify-center text-white shadow-lg hover:shadow-[var(--accent-500)]/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0 active:scale-95"
-          >
-            {sending ? (
-              <span className="spinner-sm border-white/30 border-t-white" />
-            ) : (
-              <Icons.Send size={18} />
-            )}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={!messageContent.trim() || sending}
+              className="w-10 h-10 rounded-full bg-[var(--accent-500)] flex items-center justify-center text-white shadow-md hover:bg-[var(--accent-600)] hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed transition-all flex-shrink-0 mb-[1px]"
+            >
+              {sending ? (
+                <span className="spinner-sm border-white/40 border-t-white w-4 h-4" />
+              ) : (
+                <Icons.Send size={18} className="translate-x-0.5" />
+              )}
+            </button>
+          </form>
+          
+          {messageContent.length > 1500 && (
+            <div className="text-right px-4 mt-1">
+               <span className={`text-[10px] font-medium ${messageContent.length > 1900 ? 'text-red-400' : 'text-[var(--text-muted)]'}`}>
+                  {messageContent.length} / {MAX_MESSAGE_LENGTH}
+               </span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

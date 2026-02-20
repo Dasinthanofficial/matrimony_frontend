@@ -1,19 +1,18 @@
-// src/pages/ContactPage.jsx
 import React, { useState } from 'react';
 import { Icons } from '../components/Icons';
 
 const contactInfo = [
-  { icon: Icons.Mail, label: 'Email', value: 'support@matrimony.com', color: 'icon-box-accent' },
-  { icon: Icons.Phone, label: 'Phone', value: '+94 77 123 4567', color: 'icon-box-success' },
-  { icon: Icons.MapPin, label: 'Location', value: 'Sri Lanka', color: 'icon-box-info' },
-  { icon: Icons.Clock, label: 'Hours', value: '24/7 Support', color: 'icon-box-warning' },
+  { icon: Icons.Mail, label: 'Email Support', value: 'support@matrimony.com', color: 'text-blue-500 bg-blue-500/10' },
+  { icon: Icons.Phone, label: 'Helpline', value: '+94 77 123 4567', color: 'text-green-500 bg-green-500/10' },
+  { icon: Icons.MapPin, label: 'Office', value: 'Colombo, Sri Lanka', color: 'text-purple-500 bg-purple-500/10' },
+  { icon: Icons.Clock, label: 'Hours', value: '24/7 Available', color: 'text-orange-500 bg-orange-500/10' },
 ];
 
 const faqs = [
-  { q: 'How do I verify my profile?', a: 'Upload a government ID in your profile settings. Our team will review and verify.', icon: Icons.UserCheck },
-  { q: 'Is my data secure?', a: 'Yes, we use strong encryption and privacy controls. Your privacy is our top priority.', icon: Icons.Shield },
-  { q: 'How does matching work?', a: 'We use your preferences and profile details to suggest compatible matches.', icon: Icons.Dna },
-  { q: 'Can I cancel my subscription?', a: 'Yes, you can cancel anytime from your account settings.', icon: Icons.RefreshCw },
+  { q: 'How do I verify my profile?', a: 'Go to Settings > Verification and upload a clear photo of your government-issued ID (NIC/Passport). Our team will review it within 24 hours.' },
+  { q: 'Is my personal data secure?', a: 'Absolutely. We use banking-grade encryption and strict privacy controls. You decide who sees your photos and contact details.' },
+  { q: 'How does matching work?', a: 'Our algorithm uses your horoscope (Porondam), religion, caste, and personal preferences to suggest highly compatible partners.' },
+  { q: 'Can I cancel my subscription?', a: 'Yes, you can cancel your subscription at any time from your billing settings. Your benefits will continue until the end of the current period.' },
 ];
 
 export default function ContactPage() {
@@ -27,7 +26,8 @@ export default function ContactPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setSent(true);
+    // Simulate API call
+    setTimeout(() => setSent(true), 500);
   };
 
   const handleChange = (e) => {
@@ -35,154 +35,178 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen pt-28 lg:pt-36 pb-16">
-      <div className="page-container px-4">
-        <div className="text-center mb-12 lg:mb-16">
-          <div className="pill mb-4 mx-auto w-fit">
+    <div className="min-h-screen bg-[var(--bg-primary)] pt-24 sm:pt-32 pb-16 px-4 sm:px-6">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Header Section */}
+        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-500)]/10 text-[var(--accent-500)] text-xs font-bold uppercase tracking-wider mb-6 border border-[var(--accent-500)]/20">
             <Icons.MessageSquare size={14} />
-            <span>Contact Us</span>
+            <span>Support Center</span>
           </div>
-          <h1 className="heading-xl mb-4">
-            Get in <span className="text-gradient">Touch</span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[var(--text-primary)] mb-4">
+            Get in <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent-500)] to-[var(--accent-600)]">Touch</span>
           </h1>
-          <p className="text-base lg:text-lg text-[var(--text-secondary)] max-w-xl mx-auto">
-            Have questions? Send us a message and we’ll respond as soon as possible.
+          <p className="text-base sm:text-lg text-[var(--text-secondary)] leading-relaxed">
+            Have questions about our service or need help with your profile? 
+            Our support team is here to assist you.
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-12 max-w-6xl mx-auto">
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+          
+          {/* LEFT COLUMN: Contact Info & FAQ */}
+          <div className="space-y-8">
+            
+            {/* Contact Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {contactInfo.map((item, i) => {
                 const IconComponent = item.icon;
                 return (
-                  <div key={i} className="card p-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`icon-box-sm ${item.color}`}>
-                        <IconComponent size={16} />
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">{item.label}</p>
-                        <p className="text-sm font-medium">{item.value}</p>
-                      </div>
+                  <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-[var(--surface-glass)] border border-[var(--border-primary)] hover:border-[var(--accent-500)]/30 transition-all duration-300 hover:shadow-lg group">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.color} group-hover:scale-110 transition-transform duration-300`}>
+                      <IconComponent size={20} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">{item.label}</p>
+                      <p className="text-sm sm:text-base font-semibold text-[var(--text-primary)]">{item.value}</p>
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            <div className="card p-6">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="icon-box-sm icon-box-accent">
-                  <Icons.HelpCircle size={16} />
+            {/* FAQ Section */}
+            <div className="rounded-3xl bg-[var(--surface-glass)] border border-[var(--border-primary)] p-6 sm:p-8 shadow-sm">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-lg bg-[var(--accent-500)]/10 text-[var(--accent-500)]">
+                  <Icons.HelpCircle size={20} />
                 </div>
-                <h3 className="font-semibold">Frequently Asked Questions</h3>
+                <h3 className="text-lg font-bold text-[var(--text-primary)]">Frequently Asked Questions</h3>
               </div>
+              
               <div className="space-y-4">
-                {faqs.map((faq, i) => {
-                  const IconComponent = faq.icon;
-                  return (
-                    <details key={i} className="group">
-                      <summary className="flex items-center gap-3 cursor-pointer list-none">
-                        <div className="w-8 h-8 rounded-lg bg-white/[0.03] flex items-center justify-center flex-shrink-0 group-open:bg-[var(--accent-500)]/10">
-                          <IconComponent size={14} className="text-[var(--accent-500)]" />
-                        </div>
-                        <span className="text-sm font-medium flex-1">{faq.q}</span>
-                        <Icons.ChevronDown size={16} className="text-[var(--text-muted)] group-open:rotate-180 transition-transform" />
-                      </summary>
-                      <div className="mt-2 pl-11 text-sm text-[var(--text-secondary)]">{faq.a}</div>
-                    </details>
-                  );
-                })}
+                {faqs.map((faq, i) => (
+                  <details key={i} className="group [&_summary::-webkit-details-marker]:hidden">
+                    <summary className="flex items-center justify-between gap-4 cursor-pointer list-none p-4 rounded-xl hover:bg-[var(--bg-secondary)] transition-colors border border-transparent hover:border-[var(--border-primary)]">
+                      <span className="text-sm font-medium text-[var(--text-primary)] group-open:text-[var(--accent-500)] transition-colors">
+                        {faq.q}
+                      </span>
+                      <span className="transition-transform duration-300 group-open:rotate-180 text-[var(--text-muted)]">
+                        <Icons.ChevronDown size={16} />
+                      </span>
+                    </summary>
+                    <div className="px-4 pb-4 pt-2 text-sm text-[var(--text-secondary)] leading-relaxed animate-fade-in">
+                      {faq.a}
+                    </div>
+                  </details>
+                ))}
               </div>
             </div>
           </div>
 
-          <div className="card-elevated p-6 lg:p-8 h-fit">
+          {/* RIGHT COLUMN: Contact Form */}
+          <div className="relative rounded-[2rem] bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-6 sm:p-8 lg:p-10 shadow-2xl overflow-hidden">
+            {/* Background Decor */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--accent-500)]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+            
             {sent ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 mx-auto rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mb-4">
-                  <Icons.Check size={28} className="text-green-500" />
+              <div className="flex flex-col items-center justify-center text-center py-12 h-full min-h-[400px]">
+                <div className="w-20 h-20 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center mb-6 animate-scale-in">
+                  <Icons.Check size={32} />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Message Sent!</h3>
-                <p className="text-[var(--text-secondary)] mb-6">
-                  Thank you for reaching out. We’ll get back to you soon.
+                <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Message Sent!</h3>
+                <p className="text-[var(--text-secondary)] mb-8 max-w-xs mx-auto">
+                  Thank you for reaching out. Our support team will get back to you within 24 hours.
                 </p>
                 <button
                   onClick={() => {
                     setSent(false);
                     setFormData({ name: '', email: '', subject: 'General Inquiry', message: '' });
                   }}
-                  className="btn-secondary"
+                  className="btn-secondary px-6 py-3 rounded-xl"
                 >
-                  <Icons.RefreshCw size={16} />
+                  <Icons.RefreshCw size={16} className="mr-2" />
                   <span>Send Another Message</span>
                 </button>
               </div>
             ) : (
               <>
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="icon-box-sm icon-box-accent">
-                    <Icons.Send size={16} />
-                  </div>
-                  <h3 className="font-semibold">Send us a Message</h3>
+                <div className="relative z-10 mb-8">
+                  <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Send us a Message</h3>
+                  <p className="text-sm text-[var(--text-secondary)]">
+                    Fill out the form below and we'll help you find your way.
+                  </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="label">Your Name</label>
+                <form onSubmit={handleSubmit} className="relative z-10 space-y-5">
+                  <div className="grid sm:grid-cols-2 gap-5">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-[var(--text-muted)] uppercase ml-1">Your Name</label>
                       <input
                         required
                         type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        className="input"
+                        className="w-full bg-[var(--surface-glass)] border border-[var(--border-primary)] text-[var(--text-primary)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)]/50 focus:border-[var(--accent-500)] transition-all placeholder:text-[var(--text-muted)]/50"
                         placeholder="John Doe"
                       />
                     </div>
-                    <div>
-                      <label className="label">Email Address</label>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-[var(--text-muted)] uppercase ml-1">Email Address</label>
                       <input
                         required
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="input"
-                        placeholder="your@email.com"
+                        className="w-full bg-[var(--surface-glass)] border border-[var(--border-primary)] text-[var(--text-primary)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)]/50 focus:border-[var(--accent-500)] transition-all placeholder:text-[var(--text-muted)]/50"
+                        placeholder="john@example.com"
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <label className="label">Subject</label>
-                    <select name="subject" value={formData.subject} onChange={handleChange} className="select">
-                      <option>General Inquiry</option>
-                      <option>Technical Support</option>
-                      <option>Billing Question</option>
-                      <option>Report an Issue</option>
-                      <option>Partnership Inquiry</option>
-                      <option>Feedback</option>
-                    </select>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-[var(--text-muted)] uppercase ml-1">Subject</label>
+                    <div className="relative">
+                      <select 
+                        name="subject" 
+                        value={formData.subject} 
+                        onChange={handleChange} 
+                        className="w-full bg-[var(--surface-glass)] border border-[var(--border-primary)] text-[var(--text-primary)] rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)]/50 focus:border-[var(--accent-500)] transition-all appearance-none cursor-pointer"
+                      >
+                        <option>General Inquiry</option>
+                        <option>Technical Support</option>
+                        <option>Billing Question</option>
+                        <option>Report an Issue</option>
+                        <option>Partnership Inquiry</option>
+                        <option>Feedback</option>
+                      </select>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none">
+                        <Icons.ChevronDown size={16} />
+                      </div>
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="label">Message</label>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-[var(--text-muted)] uppercase ml-1">Message</label>
                     <textarea
                       required
                       name="message"
                       value={formData.message}
                       onChange={handleChange}
                       rows={5}
-                      className="textarea"
-                      placeholder="How can we help you today?"
+                      className="w-full bg-[var(--surface-glass)] border border-[var(--border-primary)] text-[var(--text-primary)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)]/50 focus:border-[var(--accent-500)] transition-all placeholder:text-[var(--text-muted)]/50 resize-none"
+                      placeholder="Tell us how we can help..."
                     />
                   </div>
 
-                  <button type="submit" className="btn-primary w-full btn-lg">
-                    <Icons.Send size={18} />
+                  <button 
+                    type="submit" 
+                    className="w-full btn-primary py-4 text-base font-bold rounded-xl shadow-lg shadow-[var(--accent-500)]/20 hover:scale-[1.02] active:scale-95 transition-all"
+                  >
+                    <Icons.Send size={18} className="mr-2" />
                     <span>Send Message</span>
                   </button>
                 </form>

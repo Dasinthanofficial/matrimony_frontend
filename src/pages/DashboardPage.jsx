@@ -167,8 +167,6 @@ export default function DashboardPage() {
         loadProfileCompletion(), loadInterestStats(), loadChatStats(),
         loadRecentActivity(), loadSuggestedProfiles(), loadShortlistCount(),
       ]);
-      const errors = results.filter(r => r.status === 'rejected');
-      if (errors.length > 0) console.warn('Some dashboard data failed:', errors);
     } catch (err) {
       console.error('Dashboard load error:', err);
       setError('Failed to load some dashboard data');
@@ -199,7 +197,7 @@ export default function DashboardPage() {
   /* ---- loading state ---- */
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-[60vh] w-full">
         <div className="text-center">
           <div className="spinner-lg mx-auto mb-4" />
           <p className="text-[var(--text-muted)]">Loading dashboard...</p>
@@ -209,22 +207,22 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6 pb-6">
+    <div className="w-full pb-8">
       {/* ===== HEADER ===== */}
-      <header>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <header className="mb-6 md:mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           
           <div className="flex flex-col gap-1">
-            <h1 className="text-2xl sm:text-3xl font-bold">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold">
               Welcome, <span className="text-gradient">{displayName}</span>
             </h1>
             <div className="flex items-center gap-3 mt-1">
-              <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 text-[10px] font-bold uppercase tracking-wider">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 text-[10px] md:text-xs font-bold uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-green-500 animate-pulse" />
                 Online
               </span>
               {premium && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-bold uppercase tracking-wider">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] md:text-xs font-bold uppercase tracking-wider">
                   <Icons.Crown size={12} />
                   Premium
                 </span>
@@ -232,10 +230,14 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button onClick={loadDashboardData} disabled={loading} className="btn-secondary text-sm">
-              <Icons.RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-              <span>Refresh</span>
+          <div className="flex items-center gap-3 self-end md:self-auto">
+            <button 
+              onClick={loadDashboardData} 
+              disabled={loading} 
+              className="btn-secondary text-sm h-10 px-4"
+            >
+              <Icons.RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+              <span className="hidden sm:inline">Refresh</span>
             </button>
           </div>
         </div>
@@ -243,280 +245,307 @@ export default function DashboardPage() {
 
       {/* ===== ERROR BANNER ===== */}
       {error && (
-        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3">
+        <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
           <Icons.AlertCircle size={16} />
           <span>{error}</span>
-          <button onClick={loadDashboardData} className="ml-auto btn-ghost text-red-400">Retry</button>
+          <button onClick={loadDashboardData} className="ml-auto btn-ghost text-red-400 hover:bg-red-500/20">Retry</button>
         </div>
       )}
 
-      {/* ===== COMPLETE PROFILE PROMPT ===== */}
+      {/* ===== COMPLETE PROFILE PROMPT (Full Width) ===== */}
       {!hasProfile && (
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/5 border border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center gap-5">
-          <div className="p-3 bg-amber-500/20 rounded-xl text-amber-500">
-            <Icons.UserCheck size={24} />
+        <div className="mb-8 p-6 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/5 border border-amber-500/20 flex flex-col md:flex-row items-center gap-6 shadow-lg shadow-amber-500/5">
+          <div className="p-4 bg-amber-500/20 rounded-full text-amber-500 flex-shrink-0">
+            <Icons.UserCheck size={32} />
           </div>
-          <div className="flex-1">
-            <h3 className="font-bold text-amber-500 text-lg">Complete Your Profile</h3>
-            <p className="text-sm text-[var(--text-secondary)] mt-1">Add your basic details and photos to start appearing in search results and receiving matches.</p>
+          <div className="flex-1 text-center md:text-left">
+            <h3 className="font-bold text-amber-500 text-xl">Complete Your Profile</h3>
+            <p className="text-sm md:text-base text-[var(--text-secondary)] mt-2 max-w-2xl">
+              Add your basic details and photos to start appearing in search results and receiving matches. 
+              Profiles with photos get 10x more attention.
+            </p>
           </div>
-          <Link to="/complete-profile" className="btn-primary sm:ml-auto whitespace-nowrap bg-amber-500 hover:bg-amber-600 border-none text-white shadow-lg shadow-amber-500/20">
-            <Icons.Edit size={16} />
+          <Link 
+            to="/complete-profile" 
+            className="btn-primary whitespace-nowrap bg-amber-500 hover:bg-amber-600 border-none text-white shadow-lg shadow-amber-500/20 px-8 py-3"
+          >
+            <Icons.Edit size={18} />
             <span>Complete Now</span>
           </Link>
         </div>
       )}
 
-      {/* ===== STATS GRID ===== */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* ===== STATS GRID (Full Width) ===== */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
         {statsCards.map((stat, i) => {
           const IconComponent = stat.icon;
           return (
-            <Link key={i} to={stat.link} className="card p-4 hover:scale-[1.02] transition-all hover:shadow-lg border border-[var(--border-primary)] hover:border-[var(--border-secondary)]">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-2.5 rounded-xl ${stat.color}`}>
-                  <IconComponent size={20} />
+            <Link key={i} to={stat.link} className="card p-5 hover:scale-[1.02] transition-all hover:shadow-xl hover:shadow-[var(--accent-500)]/5 border border-[var(--border-primary)] hover:border-[var(--accent-500)]/30 group relative overflow-hidden">
+              <div className="relative z-10 flex flex-col h-full justify-between">
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`p-3 rounded-xl ${stat.color} group-hover:scale-110 transition-transform`}>
+                    <IconComponent size={24} />
+                  </div>
+                  {stat.badge && (
+                    <span className="absolute top-4 right-4 px-2 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold shadow-md shadow-red-500/20 animate-pulse">
+                      {stat.badge}
+                    </span>
+                  )}
                 </div>
-                {stat.badge && (
-                  <span className="px-2 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold shadow-md shadow-red-500/20">
-                    {stat.badge}
-                  </span>
-                )}
+                <div>
+                  <p className="text-3xl font-bold mb-1 text-[var(--text-primary)] group-hover:text-[var(--accent-500)] transition-colors">
+                    {stat.value}
+                  </p>
+                  <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-bold">{stat.label}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl lg:text-3xl font-bold mb-1 text-[var(--text-primary)]">{stat.value}</p>
-                <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold">{stat.label}</p>
+              {/* Background Decoration */}
+              <div className="absolute -right-4 -bottom-4 opacity-0 group-hover:opacity-5 transition-opacity pointer-events-none">
+                <IconComponent size={100} />
               </div>
             </Link>
           );
         })}
       </div>
 
-      {/* ===== PROFILE STRENGTH + MEMBERSHIP ===== */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      {/* ===== MAIN DASHBOARD LAYOUT (Left Content + Right Sidebar) ===== */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
         
-        {/* Profile Strength */}
-        <div className="lg:col-span-2 card p-6 flex flex-col justify-center">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-bold text-lg flex items-center gap-2">
-              <Icons.Activity size={18} className="text-[var(--accent-500)]" />
-              Profile Strength
+        {/* === LEFT COLUMN (Main Content) === */}
+        <div className="lg:col-span-2 xl:col-span-3 space-y-6 md:space-y-8">
+          
+          {/* 1. Profile Strength */}
+          <div className="card p-6 md:p-8 border-[var(--border-primary)] hover:border-[var(--border-secondary)] transition-colors">
+            <div className="flex items-center justify-between mb-6 md:mb-8">
+              <h3 className="font-bold text-lg md:text-xl flex items-center gap-2">
+                <Icons.Activity size={20} className="text-[var(--accent-500)]" />
+                Profile Strength
+              </h3>
+              {hasProfile && (
+                <Link to={profileLink} className="btn-ghost text-xs md:text-sm font-medium text-[var(--accent-500)] gap-1 px-3">
+                  View Profile <Icons.ChevronRight size={14} />
+                </Link>
+              )}
+            </div>
+
+            <div className="flex flex-col md:flex-row items-center gap-8 md:gap-10">
+              {/* Circular Progress */}
+              <div className="relative w-36 h-36 md:w-44 md:h-44 flex-shrink-0">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="6" className="text-[var(--surface-glass-active)]" />
+                  <circle
+                    cx="50" cy="50" r="40" fill="none"
+                    stroke={completionPct < 50 ? '#ef4444' : completionPct < 80 ? '#f59e0b' : '#10b981'}
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeDasharray={`${completionPct * 2.51} 251`}
+                    className="transition-all duration-1000 ease-out"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">{completionPct}%</span>
+                  <span className="text-[10px] md:text-xs text-[var(--text-muted)] uppercase tracking-wide mt-1">Complete</span>
+                </div>
+              </div>
+
+              {/* Strength Details */}
+              <div className="flex-1 w-full">
+                <p className="text-sm md:text-base text-[var(--text-secondary)] mb-6 font-medium text-center md:text-left">
+                  {completionPct < 30 ? 'Your profile is just starting. Complete basic details to get noticed.'
+                    : completionPct < 80 ? 'Good progress! Add more specific details to find better matches.'
+                    : 'Excellent! Your profile is highly visible and attractive to matches.'}
+                </p>
+
+                {completionData.details && Object.keys(completionData.details).length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                    {Object.entries(completionData.details).slice(0, 6).map(([key, value]) => (
+                      <div key={key} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface-glass)] border border-[var(--border-subtle)] hover:bg-[var(--surface-glass-active)] transition-colors">
+                        <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 transition-colors duration-500 ${value >= 100 ? 'bg-green-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : value > 0 ? 'bg-amber-500' : 'bg-gray-600'}`} />
+                        <span className="text-xs md:text-sm text-[var(--text-primary)] font-medium capitalize truncate flex-1">
+                          {key.replace(/([A-Z])/g, ' $1').trim()}
+                        </span>
+                        <span className={`text-xs font-bold ${value >= 100 ? 'text-green-500' : 'text-[var(--text-muted)]'}`}>{Math.round(value)}%</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                <div className="mt-6 flex justify-center md:justify-start">
+                  <Link to="/complete-profile" className="btn-secondary text-sm">
+                    <Icons.Edit size={14} />
+                    <span>Update Details</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Quick Actions */}
+          <div>
+            <h3 className="font-bold text-lg md:text-xl mb-4 flex items-center gap-2">
+              <Icons.Zap size={20} className="text-[var(--accent-500)]" />
+              Quick Actions
             </h3>
-            {hasProfile && (
-              <Link to={profileLink} className="text-xs font-medium text-[var(--accent-500)] hover:underline flex items-center gap-1">
-                View Profile <Icons.ChevronRight size={12} />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {quickActions.map(action => {
+                const IconComponent = action.icon;
+                return (
+                  <Link key={action.path} to={action.path} className="card p-5 flex flex-col items-center justify-center text-center gap-4 hover:border-[var(--accent-500)] hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group h-32 md:h-36">
+                    <div className={`p-3.5 rounded-full ${action.color} group-hover:scale-110 transition-transform`}>
+                      <IconComponent size={24} />
+                    </div>
+                    <h4 className="text-sm font-semibold text-[var(--text-primary)]">{action.name}</h4>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3. Suggested Profiles */}
+          {suggestedProfiles.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-lg md:text-xl flex items-center gap-2">
+                  <Icons.Sparkles size={20} className="text-[var(--accent-500)]" />
+                  Suggested for You
+                </h3>
+                <Link to="/search" className="btn-ghost text-xs md:text-sm text-[var(--accent-500)] gap-1 px-3">
+                  View All <Icons.ArrowRight size={14} />
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                {suggestedProfiles.map(profile => {
+                  const photoUrl = profile.photos?.find(p => p.isProfile)?.url || profile.photos?.[0]?.url;
+                  const initial  = (profile.fullName || 'U').charAt(0).toUpperCase();
+                  return (
+                    <Link key={profile._id} to={`/profile/${profile.profileId || profile._id}`} className="card overflow-hidden group hover:-translate-y-1 transition-transform duration-300 shadow-md hover:shadow-xl">
+                      <div className="aspect-[3/4] relative">
+                        {photoUrl ? (
+                          <img src={photoUrl} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-[var(--surface-glass)] to-[var(--surface-glass-active)] flex items-center justify-center">
+                            <span className="text-4xl font-bold text-[var(--text-muted)]">{initial}</span>
+                          </div>
+                        )}
+                        {/* Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80" />
+                        
+                        <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4">
+                          <h4 className="text-white font-bold text-sm md:text-base truncate">
+                            {profile.fullName}{profile.age ? `, ${profile.age}` : ''}
+                          </h4>
+                          <p className="text-white/80 text-xs truncate mt-1 flex items-center gap-1.5">
+                            <Icons.MapPin size={12} />
+                            {profile.city || profile.country || 'Unknown'}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* === RIGHT COLUMN (Sidebar) === */}
+        <div className="flex flex-col gap-6 md:gap-8 h-full">
+          
+          {/* 1. Membership Card */}
+          <div className="card p-6 flex flex-col h-auto min-h-[300px]">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 text-amber-500">
+                 <Icons.Crown size={22} />
+              </div>
+              <h4 className="font-bold text-lg">Membership</h4>
+            </div>
+
+            <div className={`p-4 rounded-xl mb-6 border ${premium ? 'bg-amber-500/10 border-amber-500/20' : 'bg-[var(--surface-glass)] border-[var(--border-primary)]'}`}>
+              <div className="flex justify-between items-start">
+                 <div>
+                    <p className={`font-bold text-lg ${premium ? 'text-amber-500' : 'text-[var(--text-primary)]'}`}>
+                       {premium ? 'Premium Plan' : 'Free Plan'}
+                    </p>
+                    <p className="text-xs text-[var(--text-muted)] mt-1">
+                       {premium ? 'Unlimited access & visibility' : 'Upgrade to unlock all features'}
+                    </p>
+                 </div>
+                 {premium ? <Icons.CheckCircle size={20} className="text-amber-500" /> : <Icons.Lock size={20} className="text-[var(--text-muted)]" />}
+              </div>
+            </div>
+
+            <div className="space-y-3 mb-6 flex-1">
+              {[
+                { label: 'Interests Sent', value: stats.interestsSent, icon: Icons.Send },
+                { label: 'Shortlisted',    value: stats.shortlistCount, icon: Icons.Bookmark },
+                { label: 'Active Chats',   value: stats.conversations, icon: Icons.MessageCircle },
+              ].map(item => (
+                <div key={item.label} className="flex justify-between items-center text-sm p-2.5 rounded-lg hover:bg-[var(--surface-glass)] transition-colors">
+                  <div className="flex items-center gap-3 text-[var(--text-secondary)]">
+                     <item.icon size={16} />
+                     <span>{item.label}</span>
+                  </div>
+                  <span className="font-bold text-[var(--text-primary)]">{item.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {!premium && user?.role !== 'agency' && (
+              <Link
+                to="/pricing"
+                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white text-sm font-bold shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:scale-[1.02] transition-all"
+              >
+                <Icons.Zap size={16} className="fill-white" />
+                <span>Upgrade Now</span>
               </Link>
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-8">
-            {/* Circular Progress */}
-            <div className="relative w-32 h-32 flex-shrink-0">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                {/* Track background */}
-                <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="8" className="text-[var(--surface-glass-active)]" />
-                {/* Progress */}
-                <circle
-                  cx="50" cy="50" r="40" fill="none"
-                  stroke={completionPct < 50 ? '#ef4444' : completionPct < 80 ? '#f59e0b' : '#10b981'}
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  strokeDasharray={`${completionPct * 2.51} 251`}
-                  className="transition-all duration-1000 ease-out"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xl font-bold text-[var(--text-primary)]">{completionPct}%</span>
-              </div>
-            </div>
-
-            <div className="flex-1 w-full">
-              <p className="text-sm text-[var(--text-secondary)] mb-4 font-medium">
-                {completionPct < 30 ? 'Your profile is incomplete. Add more details to get noticed.'
-                  : completionPct < 80 ? 'Good start! Fill in the missing details to improve your matches.'
-                  : 'Great job! Your profile is looking strong.'}
-              </p>
-
-              {completionData.details && Object.keys(completionData.details).length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {Object.entries(completionData.details).slice(0, 6).map(([key, value]) => (
-                    <div key={key} className="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-glass)] border border-[var(--border-subtle)]">
-                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${value >= 100 ? 'bg-green-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : value > 0 ? 'bg-amber-500' : 'bg-gray-600'}`} />
-                      <span className="text-xs text-[var(--text-secondary)] font-medium capitalize truncate flex-1">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </span>
-                      <span className={`text-xs font-bold ${value >= 100 ? 'text-green-500' : 'text-[var(--text-muted)]'}`}>{Math.round(value)}%</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <div className="mt-6 pt-4 border-t border-[var(--border-primary)] flex justify-end">
-             <Link to="/complete-profile" className="btn-secondary text-sm">
-                <Icons.Edit size={14} />
-                <span>Update Details</span>
-             </Link>
-          </div>
-        </div>
-
-        {/* Membership */}
-        <div className="card p-6 flex flex-col h-full">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="p-2 rounded-lg bg-[var(--surface-glass-active)]">
-               <Icons.Crown size={18} className="text-[var(--accent-500)]" />
-            </div>
-            <h4 className="font-bold text-lg">Membership</h4>
-          </div>
-
-          <div className={`p-4 rounded-xl mb-6 border ${premium ? 'bg-amber-500/10 border-amber-500/20' : 'bg-[var(--surface-glass)] border-[var(--border-primary)]'}`}>
-            <div className="flex justify-between items-start">
-               <div>
-                  <p className={`font-bold text-lg ${premium ? 'text-amber-500' : 'text-[var(--text-primary)]'}`}>
-                     {premium ? 'Premium Plan' : 'Free Plan'}
-                  </p>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">
-                     {premium ? 'Unlimited access & visibility' : 'Upgrade to unlock all features'}
-                  </p>
-               </div>
-               {premium ? <Icons.CheckCircle size={20} className="text-amber-500" /> : <Icons.Lock size={20} className="text-[var(--text-muted)]" />}
-            </div>
-          </div>
-
-          <div className="space-y-4 mb-6 flex-1">
-            {[
-              { label: 'Interests Sent', value: stats.interestsSent, icon: Icons.Send },
-              { label: 'Shortlisted',    value: stats.shortlistCount, icon: Icons.Bookmark },
-              { label: 'Active Chats',   value: stats.conversations, icon: Icons.MessageCircle },
-            ].map(item => (
-              <div key={item.label} className="flex justify-between items-center text-sm p-2 rounded-lg hover:bg-[var(--surface-glass)] transition-colors">
-                <div className="flex items-center gap-3 text-[var(--text-secondary)]">
-                   <item.icon size={14} />
-                   <span>{item.label}</span>
-                </div>
-                <span className="font-bold text-[var(--text-primary)]">{item.value}</span>
-              </div>
-            ))}
-          </div>
-
-          {!premium && user?.role !== 'agency' && (
-            <Link
-              to="/pricing"
-              className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white text-sm font-bold shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:scale-[1.02] transition-all"
-            >
-              <Icons.Zap size={16} className="fill-white" />
-              <span>Upgrade Now</span>
-            </Link>
-          )}
-        </div>
-      </div>
-
-      {/* ===== QUICK ACTIONS + RECENT ACTIVITY ===== */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-            <Icons.Zap size={18} className="text-[var(--accent-500)]" />
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {quickActions.map(action => {
-              const IconComponent = action.icon;
-              return (
-                <Link key={action.path} to={action.path} className="card p-4 flex flex-col items-center text-center gap-3 hover:border-[var(--accent-500)] hover:shadow-md transition-all group">
-                  <div className={`p-3 rounded-full ${action.color} group-hover:scale-110 transition-transform`}>
-                    <IconComponent size={20} />
-                  </div>
-                  <h4 className="text-sm font-semibold text-[var(--text-primary)]">{action.name}</h4>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-
-        <div>
-          <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-            <Icons.Clock size={18} className="text-[var(--accent-500)]" />
-            Recent Activity
-          </h3>
-          <div className="card p-2">
-            <div className="space-y-1">
+          {/* 2. Recent Activity - Fills remaining height on Desktop */}
+          <div className="card p-6 flex flex-col flex-1">
+            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+              <Icons.Clock size={20} className="text-[var(--accent-500)]" />
+              Recent Activity
+            </h3>
+            
+            <div className="flex-1 space-y-4">
               {recentActivity.map((activity, i) => {
                 const IconComponent = activity.icon || Icons.Bell;
                 return (
                   <Link
                     key={i}
                     to={activity.link || '#'}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--surface-glass)] transition-colors"
+                    className="flex items-start gap-3.5 p-3 rounded-xl hover:bg-[var(--surface-glass)] transition-all group"
                   >
-                    <div className={`p-2 rounded-full bg-[var(--surface-glass-active)] flex-shrink-0 ${activity.color || ''}`}>
-                      <IconComponent size={14} />
+                    <div className={`mt-0.5 p-2 rounded-full bg-[var(--surface-glass-active)] flex-shrink-0 ${activity.color || ''}`}>
+                      <IconComponent size={16} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm truncate text-[var(--text-primary)] font-medium">{activity.text}</p>
-                      {activity.time && <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{activity.time}</p>}
+                      <p className="text-sm text-[var(--text-primary)] font-medium leading-tight group-hover:text-[var(--accent-500)] transition-colors line-clamp-2">
+                        {activity.text}
+                      </p>
+                      {activity.time && <p className="text-[11px] text-[var(--text-muted)] mt-1.5 flex items-center gap-1">
+                        <Icons.Clock size={10} /> {activity.time}
+                      </p>}
                     </div>
-                    <Icons.ChevronRight size={14} className="text-[var(--text-muted)]" />
                   </Link>
                 );
               })}
             </div>
+
             {recentActivity.length > 0 && (
-                <Link
+              <Link
                 to="/notifications"
-                className="flex items-center justify-center gap-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent-500)] font-medium py-3 border-t border-[var(--border-primary)] mt-1"
-                >
-                <span>View All History</span>
-                </Link>
+                className="mt-4 pt-4 border-t border-[var(--border-primary)] flex items-center justify-center gap-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent-500)] font-medium transition-colors"
+              >
+                <span>View Full History</span>
+                <Icons.ArrowRight size={12} />
+              </Link>
             )}
           </div>
+
         </div>
       </div>
-
-      {/* ===== SUGGESTED PROFILES ===== */}
-      {suggestedProfiles.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-lg flex items-center gap-2">
-              <Icons.Sparkles size={18} className="text-[var(--accent-500)]" />
-              Suggested for You
-            </h3>
-            <Link to="/search" className="btn-secondary text-xs py-1.5 px-3">
-              <span>View All</span>
-              <Icons.ArrowRight size={14} />
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {suggestedProfiles.map(profile => {
-              const photoUrl = profile.photos?.find(p => p.isProfile)?.url || profile.photos?.[0]?.url;
-              const initial  = (profile.fullName || 'U').charAt(0).toUpperCase();
-              return (
-                <Link key={profile._id} to={`/profile/${profile.profileId || profile._id}`} className="card overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
-                  <div className="aspect-[3/4] relative">
-                    {photoUrl ? (
-                      <img src={photoUrl} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-[var(--accent-500)]/20 to-[var(--accent-700)]/20 flex items-center justify-center">
-                        <span className="text-4xl font-bold text-[var(--text-muted)]">{initial}</span>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-80" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <h4 className="text-white font-bold text-sm truncate">
-                        {profile.fullName}{profile.age ? `, ${profile.age}` : ''}
-                      </h4>
-                      <p className="text-white/70 text-xs truncate mt-0.5 flex items-center gap-1">
-                        <Icons.MapPin size={10} />
-                        {profile.city || profile.country || 'Unknown'}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
