@@ -442,6 +442,12 @@ export const agencyFeedbackAPI = {
     }),
 };
 
+export const dashboardAPI = {
+  getSummary: () => apiCall('/dashboard/summary'),
+  getVisitors: () => apiCall('/dashboard/visitors'),
+  getNewMatches: (limit = 6) => apiCall(`/search/suggested?limit=${limit}`),
+};
+
 export default {
   auth: authAPI,
   profile: profileAPI,
@@ -456,6 +462,7 @@ export default {
   agencyOrders: agencyOrderAPI,
   paymentsMarketplace: paymentsMarketplaceAPI,
   notification: notificationAPI,
+  dashboard: dashboardAPI,
   apiCall,
   getToken,
   setToken,

@@ -1,5 +1,7 @@
+// ===== FILE: ./src/components/AgencyFeedbackSection.jsx =====
 import React, { useEffect, useState } from 'react';
 import { agencyFeedbackAPI } from '../services/api';
+import { Icons } from './Icons';
 
 export default function AgencyFeedbackSection({ agencyId }) {
   const [loading, setLoading] = useState(true);
@@ -28,10 +30,10 @@ export default function AgencyFeedbackSection({ agencyId }) {
           setMyComment(mine.feedback.comment || '');
         }
       } catch {
-        // not logged in -> ignore
+        // not logged in or no review -> ignore
       }
     } catch (e) {
-      setErr(e?.message || 'Failed to load feedback');
+      console.warn("Feedback load error", e);
     } finally {
       setLoading(false);
     }
@@ -60,87 +62,80 @@ export default function AgencyFeedbackSection({ agencyId }) {
     <div className="card p-4 space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="font-semibold">Agency Rating</h3>
-          <p className="text-sm text-[var(--text-secondary)]">
-            Avg: <span className="font-semibold">{summary.avg}</span> / 5 • {summary.count} review(s)
-          </p>
+          <h3 className="font-semibold text-lg">Agency Ratings</h3>
+          <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center text-amber-400">
+              <span className="font-bold text-xl mr-1">{summary.avg}</span>
+              <Icons.Star size={16} fill="currentColor" />
+            </div>
+            <span className="text-sm text-[var(--text-muted)]">({summary.count} reviews)</span>
+          </div>
         </div>
-        <button className="btn-secondary" onClick={load} disabled={loading || saving}>
-          Refresh
+        <button className="btn-secondary text-xs px-3" onClick={load} disabled={loading || saving}>
+          <Icons.RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
         </button>
       </div>
 
       {err && (
-        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400">
+        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
           {err}
         </div>
       )}
 
-      {/* Submit / update */}
-      <div className="border border-[var(--border-primary)] rounded-xl p-3 bg-[var(--surface-glass)]">
-        <div className="text-sm font-medium mb-2">Leave your feedback</div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm text-[var(--text-secondary)]">Rating:</span>
+      {/* Write Review */}
+      <div className="p-4 rounded-xl bg-[var(--surface-glass)] border border-[var(--border-primary)]">
+        <label className="block text-sm font-medium mb-2">Write a Review</label>
+        
+        <div className="flex gap-2 mb-3">
           {[1, 2, 3, 4, 5].map((n) => (
             <button
               key={n}
               type="button"
-              className={`px-2 py-1 rounded-lg border ${
-                myRating === n
-                  ? 'border-[var(--accent-500)] text-[var(--accent-500)]'
-                  : 'border-[var(--border-primary)] text-[var(--text-secondary)]'
-              }`}
               onClick={() => setMyRating(n)}
-              disabled={saving}
+              className={`p-2 rounded-lg transition-all ${
+                myRating >= n ? 'text-amber-400' : 'text-[var(--text-muted)]'
+              }`}
             >
-              {n}
+              <Icons.Star size={20} fill={myRating >= n ? "currentColor" : "none"} />
             </button>
           ))}
         </div>
 
         <textarea
-          className="input w-full mt-3 min-h-[90px]"
-          placeholder="Write a short comment (optional)"
+          className="input w-full min-h-[80px] text-sm"
+          placeholder="Share your experience with this agency..."
           value={myComment}
           onChange={(e) => setMyComment(e.target.value)}
           disabled={saving}
         />
 
         <div className="mt-3 flex justify-end">
-          <button className="btn-primary" onClick={submit} disabled={saving}>
-            {saving ? 'Saving…' : 'Submit'}
+          <button className="btn-primary py-2 px-4 text-sm" onClick={submit} disabled={saving}>
+            {saving ? 'Posting...' : 'Post Review'}
           </button>
         </div>
       </div>
 
-      {/* List */}
-      {loading ? (
-        <div className="text-sm text-[var(--text-secondary)]">Loading…</div>
-      ) : items.length === 0 ? (
-        <div className="text-sm text-[var(--text-secondary)]">No feedback yet.</div>
-      ) : (
-        <div className="space-y-3">
-          {items.map((f) => (
-            <div key={f._id} className="border border-[var(--border-primary)] rounded-xl p-3">
-              <div className="flex items-center justify-between">
-                <div className="font-medium text-sm">{f.userId?.fullName || 'User'}</div>
-                <div className="text-sm font-semibold">{f.rating} / 5</div>
-              </div>
-              {f.comment ? (
-                <div className="text-sm text-[var(--text-secondary)] mt-1 whitespace-pre-wrap">
-                  {f.comment}
-                </div>
-              ) : (
-                <div className="text-xs text-[var(--text-muted)] mt-1">No comment.</div>
-              )}
-              <div className="text-xs text-[var(--text-muted)] mt-2">
-                {f.createdAt ? new Date(f.createdAt).toLocaleString() : ''}
+      {/* Reviews List */}
+      <div className="space-y-3 pt-2">
+        {items.length === 0 && !loading && (
+          <p className="text-sm text-[var(--text-muted)] text-center py-4">No reviews yet. Be the first!</p>
+        )}
+        
+        {items.map((f) => (
+          <div key={f._id} className="border-b border-[var(--border-primary)] last:border-0 pb-3 last:pb-0">
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-medium text-sm">{f.userId?.fullName || 'User'}</span>
+              <div className="flex items-center text-amber-400">
+                <span className="text-xs font-bold mr-1">{f.rating}</span>
+                <Icons.Star size={10} fill="currentColor" />
               </div>
             </div>
-          ))}
-        </div>
-      )}
+            {f.comment && <p className="text-sm text-[var(--text-secondary)]">{f.comment}</p>}
+            <p className="text-[10px] text-[var(--text-muted)] mt-1">{new Date(f.createdAt).toLocaleDateString()}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

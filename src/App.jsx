@@ -47,6 +47,8 @@ import { Icons } from "./components/Icons";
 import MyOrdersPage from "./pages/orders/MyOrdersPage";
 import AgencyPublicServicesPage from "./pages/agency/AgencyPublicServicesPage";
 
+import VisitorsPage from "./pages/VisitorsPage";
+
 /* SUBPAGES */
 const PrivacyPage = () => (
   <div className="min-h-screen pt-28 pb-16 page-container">
@@ -160,6 +162,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/visitors"
+              element={
+                <ProtectedRoute>
+                  <VisitorsPage />
                 </ProtectedRoute>
               }
             />
