@@ -86,22 +86,30 @@ export default function PricingPage() {
     [plans]
   );
 
-  const startCheckout = async (plan) => {
-    if (!plan?._id) return alert('Plan id missing (plan._id).');
-    setBusyId(plan._id);
-    try {
-      const res = await subscriptionAPI.createCheckoutSession(plan._id);
-      if (res?.checkoutUrl && res?.payload) {
-        postToPayHere(res.checkoutUrl, res.payload);
-        return;
-      }
-      alert('Checkout response missing checkoutUrl/payload');
-    } catch (e) {
-      alert(e?.message || 'Failed to start checkout');
-    } finally {
-      setBusyId(null);
+const startCheckout = async (plan) => {
+  if (!plan?._id) return alert('Plan id missing (plan._id).');
+
+  const price = Number(plan.price || 0);
+  if (price <= 0) {
+    alert('This plan is free and does not require payment.');
+    return;
+  }
+
+  setBusyId(plan._id);
+  try {
+    const res = await subscriptionAPI.createCheckoutSession(plan._id);
+    if (res?.checkoutUrl && res?.payload) {
+      postToPayHere(res.checkoutUrl, res.payload);
+      return;
     }
-  };
+    alert('Checkout response missing checkoutUrl/payload');
+  } catch (e) {
+    // apiCall() errors: prefer e.data.message if present
+    alert(e?.data?.message || e?.message || 'Failed to start checkout');
+  } finally {
+    setBusyId(null);
+  }
+};
 
   if (user?.role === 'agency') {
     return (
