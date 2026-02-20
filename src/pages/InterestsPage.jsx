@@ -1,15 +1,10 @@
+// src/pages/InterestsPage.jsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import InterestCard from '../components/InterestCard';
 import { interestAPI } from '../services/api';
 import { Icons } from '../components/Icons';
-
-const tabs = [
-  { id: 'received', label: 'Received', icon: Icons.Inbox, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500' },
-  { id: 'sent',     label: 'Sent',     icon: Icons.Send,  color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500' },
-  { id: 'accepted', label: 'Connected',icon: Icons.HeartHandshake, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500' },
-];
 
 export default function InterestsPage() {
   const [activeTab, setActiveTab] = useState('received');
@@ -19,6 +14,12 @@ export default function InterestsPage() {
   const { getUserId } = useAuth();
 
   const currentUserId = getUserId();
+
+  const tabs = [
+    { id: 'received', label: 'Received', icon: Icons.Inbox, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500' },
+    { id: 'sent',     label: 'Sent',     icon: Icons.Send,  color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500' },
+    { id: 'accepted', label: 'Connected',icon: Icons.HeartHandshake, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500' },
+  ];
 
   useEffect(() => {
     loadInterests();
@@ -70,23 +71,23 @@ export default function InterestsPage() {
       case 'received':
         return {
           icon: Icons.Inbox,
-          title: 'No Interests Received',
+          title: 'No Requests Yet',
           description: 'When someone sends you an interest request, it will appear here. Complete your profile to get more attention!',
           action: { label: 'Find Matches', path: '/search', icon: Icons.Search }
         };
       case 'sent':
         return {
           icon: Icons.Send,
-          title: 'No Interests Sent',
+          title: 'No Sent Requests',
           description: 'Start connecting with people by browsing profiles and sending interest requests.',
           action: { label: 'Browse Profiles', path: '/search', icon: Icons.Search }
         };
       case 'accepted':
         return {
           icon: Icons.HeartHandshake,
-          title: 'No Connections Yet',
+          title: 'No Connections',
           description: "When you and someone else both accept each other's interest, you'll be connected.",
-          action: { label: 'Find Matches', path: '/search', icon: Icons.Search }
+          action: { label: 'Start Matching', path: '/search', icon: Icons.Search }
         };
       default:
         return { icon: Icons.Heart, title: 'No Results', description: 'Nothing to show here.', action: null };
@@ -97,115 +98,75 @@ export default function InterestsPage() {
   const EmptyIcon = emptyState.icon;
 
   return (
-    <div className="w-full min-h-screen pb-10">
+    <div className="w-full min-h-screen pb-20 px-4 md:px-6 max-w-7xl mx-auto space-y-8">
       
-      {/* ===== HEADER & TABS CONTAINER ===== */}
-      <div className="w-full mb-6 md:mb-8">
-        {/* Top Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-8">
-          <div className="flex items-center gap-3 md:gap-4">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-[var(--accent-500)] to-[var(--accent-700)] flex items-center justify-center shadow-lg shadow-[var(--accent-500)]/20 flex-shrink-0">
-              <Icons.Heart className="text-white w-5 h-5 md:w-6 md:h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">Interests</h1>
-              <p className="text-xs md:text-sm text-[var(--text-secondary)]">Manage your connections</p>
-            </div>
-          </div>
-          
-          <Link to="/dashboard" className="btn-secondary py-2 px-4 text-xs md:text-sm md:self-center self-start">
-            <Icons.ChevronLeft size={16} />
-            <span>Back to Dashboard</span>
-          </Link>
+      {/* ===== HEADER ===== */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-6">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">Interests</h1>
+          <p className="text-sm text-[var(--text-muted)] mt-1">Manage your connections and requests</p>
         </div>
+        <Link to="/dashboard" className="btn-secondary self-start md:self-auto text-sm">
+          <Icons.ChevronLeft size={16} />
+          <span>Dashboard</span>
+        </Link>
+      </div>
 
-        {/* Full Width Tabs */}
-        <div className="grid grid-cols-3 gap-2 md:gap-6">
-          {tabs.map((tab) => {
-            const TabIcon = tab.icon;
-            const count = activeTab === tab.id ? interests.length : 0;
-            const isActive = activeTab === tab.id;
-
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  relative flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-4
-                  p-2 md:p-5 rounded-xl md:rounded-2xl transition-all duration-300 border text-center md:text-left
-                  group overflow-hidden
-                  ${isActive 
-                    ? `bg-[var(--surface-glass-active)] border-[var(--accent-500)]/40 shadow-lg shadow-[var(--accent-500)]/5` 
-                    : 'bg-[var(--surface-glass)] border-[var(--border-primary)] hover:border-[var(--border-secondary)] hover:bg-[var(--surface-glass-hover)]'
-                  }
-                `}
-              >
-                {/* Active Indicator (Bottom on mobile, Left on desktop) */}
-                {isActive && (
-                   <div className="absolute bottom-0 left-0 right-0 h-0.5 md:h-full md:w-1 md:right-auto md:top-0 bg-[var(--accent-500)]" />
-                )}
-
-                {/* Icon Box */}
-                <div className={`
-                  p-2 md:p-3 rounded-lg md:rounded-xl flex-shrink-0 transition-colors
-                  ${isActive ? tab.bg + ' ' + tab.color : 'bg-[var(--surface-glass-active)] text-[var(--text-muted)]'}
-                `}>
-                  <TabIcon className="w-5 h-5 md:w-6 md:h-6" />
-                </div>
-
-                {/* Text Content */}
-                <div className="flex flex-col items-center md:items-start min-w-0">
-                  <span className="text-lg md:text-3xl font-bold text-[var(--text-primary)] leading-none md:mb-1">
-                     {loading && isActive ? '-' : isActive ? count : '•'}
-                  </span>
-                  <span className={`text-[10px] md:text-xs font-bold uppercase tracking-wider truncate max-w-full ${isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
-                    {tab.label}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+      {/* ===== TABS ===== */}
+      <div className="grid grid-cols-3 gap-2 p-1 bg-[var(--surface-glass)] rounded-xl border border-[var(--border-primary)]">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          const TabIcon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`
+                flex flex-col sm:flex-row items-center justify-center gap-2 py-3 px-2 rounded-lg transition-all duration-200
+                ${isActive 
+                  ? 'bg-[var(--bg-primary)] shadow-sm text-[var(--text-primary)] font-semibold' 
+                  : 'text-[var(--text-muted)] hover:bg-[var(--surface-glass-hover)] hover:text-[var(--text-secondary)]'}
+              `}
+            >
+              <TabIcon size={18} className={isActive ? tab.color : ''} />
+              <span className="text-xs sm:text-sm">{tab.label}</span>
+              {isActive && interests.length > 0 && !loading && (
+                <span className={`hidden sm:inline-flex ml-1 px-1.5 py-0.5 rounded-full text-[10px] ${tab.bg} ${tab.color}`}>
+                  {interests.length}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* ===== ERROR BANNER ===== */}
       {error && (
-        <div className="w-full mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-          <Icons.AlertCircle size={18} className="text-red-500 flex-shrink-0" />
-          <p className="text-sm text-red-400 flex-1">{error}</p>
-          <button onClick={loadInterests} className="btn-ghost text-red-500 text-xs hover:bg-red-500/10 px-3 py-1.5 rounded-lg">
-            Retry
-          </button>
+        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-500 animate-fade-in">
+          <Icons.AlertCircle size={20} />
+          <p className="text-sm font-medium">{error}</p>
         </div>
       )}
 
-      {/* ===== CONTENT AREA (Full Width) ===== */}
+      {/* ===== CONTENT AREA ===== */}
       {loading ? (
-        <div className="w-full h-[50vh] rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-glass)] flex flex-col items-center justify-center">
-          <div className="spinner-lg mb-4 text-[var(--accent-500)]" />
-          <p className="text-sm font-medium text-[var(--text-muted)] animate-pulse">Syncing interests...</p>
+        <div className="flex flex-col items-center justify-center py-20">
+          <Icons.Loader className="animate-spin text-[var(--accent-500)] mb-4" size={32} />
+          <p className="text-[var(--text-muted)] text-sm animate-pulse">Loading interests...</p>
         </div>
       ) : interests.length === 0 ? (
         
-        /* ===== EMPTY STATE (Wide) ===== */
-        <div className="w-full h-[60vh] rounded-2xl border border-dashed border-[var(--border-secondary)] bg-[var(--surface-glass)]/30 flex flex-col items-center justify-center text-center p-6 md:p-12 relative overflow-hidden group">
-          {/* Decorative background Icon */}
-          <EmptyIcon className="absolute opacity-[0.03] w-96 h-96 -bottom-20 -right-20 text-[var(--text-primary)] pointer-events-none transform -rotate-12 transition-transform duration-1000 group-hover:rotate-0" />
-          
-          <div className={`w-20 h-20 md:w-28 md:h-28 rounded-full flex items-center justify-center mb-6 relative z-10 shadow-xl ${emptyState.action ? 'bg-[var(--surface-glass-active)]' : 'bg-transparent'}`}>
-            <EmptyIcon className="text-[var(--text-muted)] opacity-60 w-10 h-10 md:w-12 md:h-12" />
+        /* EMPTY STATE */
+        <div className="flex flex-col items-center justify-center py-16 px-4 text-center border-2 border-dashed border-[var(--border-secondary)] rounded-2xl bg-[var(--surface-glass)]/30">
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${activeTab === 'received' ? 'bg-rose-500/10 text-rose-500' : activeTab === 'sent' ? 'bg-blue-500/10 text-blue-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+            <EmptyIcon size={32} />
           </div>
-          
-          <h3 className="text-xl md:text-3xl font-bold text-[var(--text-primary)] mb-3 relative z-10">{emptyState.title}</h3>
-          <p className="text-sm md:text-lg text-[var(--text-secondary)] mb-8 max-w-lg mx-auto leading-relaxed relative z-10">
+          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">{emptyState.title}</h3>
+          <p className="text-[var(--text-secondary)] max-w-md mb-8 leading-relaxed">
             {emptyState.description}
           </p>
-          
           {emptyState.action && (
-            <Link 
-              to={emptyState.action.path} 
-              className="relative z-10 btn-primary inline-flex items-center gap-2 px-8 py-3 text-sm md:text-base shadow-lg shadow-[var(--accent-500)]/20 hover:scale-105 transition-transform"
-            >
+            <Link to={emptyState.action.path} className="btn-primary">
               <emptyState.action.icon size={18} />
               <span>{emptyState.action.label}</span>
             </Link>
@@ -214,33 +175,32 @@ export default function InterestsPage() {
 
       ) : (
         
-        /* ===== GRID LIST (Wide) ===== */
-        <>
-          <div className="flex items-center justify-between mb-4 md:mb-6 px-1">
-            <p className="text-xs md:text-sm text-[var(--text-muted)]">
-              Showing <span className="font-bold text-[var(--text-primary)]">{interests.length}</span> {activeTab === 'received' ? 'requests' : activeTab === 'sent' ? 'requests' : 'connections'}
+        /* LIST GRID */
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <p className="text-sm text-[var(--text-muted)]">
+              Showing <span className="font-bold text-[var(--text-primary)]">{interests.length}</span> {activeTab === 'accepted' ? 'connections' : 'requests'}
             </p>
             <button 
               onClick={loadInterests} 
-              className="flex items-center gap-1.5 text-xs md:text-sm font-medium text-[var(--accent-500)] hover:text-[var(--accent-600)] transition-colors"
+              className="p-2 text-[var(--text-muted)] hover:text-[var(--accent-500)] transition-colors rounded-lg hover:bg-[var(--surface-glass-hover)]"
+              title="Refresh List"
             >
-              <Icons.RefreshCw size={14} />
-              <span>Refresh List</span>
+              <Icons.RefreshCw size={16} />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {interests.map((interest) => (
-              <div key={interest._id} className="h-full">
-                <InterestCard
-                  interest={interest}
-                  onAction={handleAction}
-                  loading={loading}
-                />
-              </div>
+              <InterestCard
+                key={interest._id}
+                interest={interest}
+                onAction={handleAction}
+                loading={loading}
+              />
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   );

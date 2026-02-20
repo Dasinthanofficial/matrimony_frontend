@@ -1,16 +1,16 @@
-// ===== FILE: ./src/pages/DashboardPage.jsx =====
+// src/pages/DashboardPage.jsx
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Icons } from '../components/Icons';
-import api from '../services/api';
-import { interestAPI } from '../services/api';
+import api, { interestAPI } from '../services/api';
+import Toast from '../components/Toast';
 
 const quickActions = [
-  { name: 'Find Matches', path: '/search',    icon: Icons.Search,       color: 'bg-blue-500/10 text-blue-500'  },
-  { name: 'Interests',    path: '/interests', icon: Icons.Heart,        color: 'bg-rose-500/10 text-rose-500'  },
-  { name: 'Shortlist',    path: '/shortlist', icon: Icons.Bookmark,     color: 'bg-amber-500/10 text-amber-500'},
-  { name: 'Messages',     path: '/chat',      icon: Icons.MessageSquare,color: 'bg-green-500/10 text-green-500'},
+  { name: 'Find Matches', path: '/search',    icon: Icons.Search,        color: 'bg-blue-500/10 text-blue-500'  },
+  { name: 'Interests',    path: '/interests', icon: Icons.Heart,         color: 'bg-rose-500/10 text-rose-500'  },
+  { name: 'Shortlist',    path: '/shortlist', icon: Icons.Bookmark,      color: 'bg-amber-500/10 text-amber-500'},
+  { name: 'Messages',     path: '/chat',      icon: Icons.MessageSquare, color: 'bg-green-500/10 text-green-500'},
 ];
 
 const formatTimeAgo = (dateString) => {
@@ -51,14 +51,18 @@ export default function DashboardPage() {
   const [recentActivity,    setRecentActivity]    = useState([]);
   const [suggestedProfiles, setSuggestedProfiles] = useState([]);
 
-  /* ---- loaders ---- */
+  // Toast State
+  const [toastState, setToastState] = useState({ open: false, message: '', type: 'success' });
+  const showToast = (message, type = 'success') => setToastState({ open: true, message, type });
+  const closeToast = () => setToastState(prev => ({ ...prev, open: false }));
+
   const loadDashboardData = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       await refreshUser();
       
-      // Load Profile Completion
+      // 1. Load Profile Completion
       try {
         const compRes = await api.profile.getCompletion();
         setCompletionData({ percentage: compRes.percentage || 0, details: compRes.details || {} });
@@ -67,15 +71,20 @@ export default function DashboardPage() {
         if (myProfileRes.profile) {
           setStats(prev => ({ ...prev, profileViews: myProfileRes.profile.profileViews || 0 }));
         }
-      } catch (e) { console.warn("Completion load failed", e); }
+      } catch (e) { 
+        // FIX 1: Ignore 404 errors (New users don't have a profile yet)
+        if (e.response?.status !== 404) {
+          console.warn("Completion load failed", e); 
+        }
+      }
 
-      // Load Suggested
+      // 2. Load Suggested
       try {
         const suggRes = await api.search.getSuggested(4);
         setSuggestedProfiles(suggRes.profiles || []);
       } catch (e) { console.warn("Suggested load failed", e); }
 
-      // Load Stats (Parallel)
+      // 3. Load Stats (Parallel)
       const [receivedRes, sentRes, matchesRes, chatRes, unreadRes, shortlistRes] = await Promise.all([
         api.interest.getReceived({ page: 1, limit: 1 }).catch(()=>({})),
         api.interest.getSent({ page: 1, limit: 1 }).catch(()=>({})),
@@ -90,24 +99,28 @@ export default function DashboardPage() {
         interestsReceived: receivedRes.pagination?.total || 0,
         interestsSent: sentRes.pagination?.total || 0,
         matches: matchesRes.pagination?.total || 0,
-        conversations: chatRes.conversations?.length || 0, // approximation if paginated
+        conversations: chatRes.conversations?.length || 0,
         unreadMessages: unreadRes.unreadCount || 0,
         shortlistCount: shortlistRes.pagination?.total || 0
       }));
 
-      // Load Recent Activity (simplified for speed)
-      // For now, using empty array or basic logic
       setRecentActivity([]); 
 
     } catch (err) {
       console.error('Dashboard load error:', err);
-      setError('Failed to load dashboard');
+      // Only show error if it's critical (not just a 404 on profile)
+      if (err.response?.status !== 404) {
+        setError('Failed to load dashboard');
+        showToast('Failed to load dashboard data.', 'error');
+      }
     } finally {
       setLoading(false);
     }
   }, [refreshUser]);
 
-  useEffect(() => { loadDashboardData(); }, [loadDashboardData]);
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
 
   const handleConnect = async (e, profileId) => {
     e.preventDefault();
@@ -116,10 +129,16 @@ export default function DashboardPage() {
     setSendingInterest(profileId);
     try {
       await interestAPI.sendInterest(profileId, "Hi, I'd like to connect!");
-      // Remove from list or show success state
       setSuggestedProfiles(prev => prev.filter(p => (p.userId !== profileId && p.id !== profileId)));
+      showToast('Interest sent successfully!', 'success');
     } catch (err) {
-      alert("Failed to connect");
+      // Handle "Already Sent" case nicely
+      const msg = err.response?.data?.message || err.message || "";
+      if (msg.toLowerCase().includes('already')) {
+        showToast('You have already sent an interest.', 'info');
+      } else {
+        showToast('Failed to send interest. Try again.', 'error');
+      }
     } finally {
       setSendingInterest(null);
     }
@@ -130,13 +149,20 @@ export default function DashboardPage() {
     e.stopPropagation();
     try {
       await interestAPI.addToShortlist(profileId);
-      alert("Shortlisted!");
+      showToast('Profile added to your shortlist!', 'success');
     } catch (err) {
-      // ignore
+      // FIX 2: Handle "Already Shortlisted" 400 Error
+      const msg = err.response?.data?.message || err.message || "";
+      
+      if (msg.toLowerCase().includes('already')) {
+        showToast('This profile is already in your shortlist.', 'info');
+      } else {
+        console.error(err);
+        showToast('Unable to shortlist this profile right now.', 'error');
+      }
     }
   };
 
-  /* ---- derived values ---- */
   const completionPct = useMemo(() => {
     const pct = completionData.percentage || user?.completionPercentage || 0;
     return Math.min(100, Math.max(0, Math.round(pct)));
@@ -153,15 +179,16 @@ export default function DashboardPage() {
     { label: 'Views', value: stats.profileViews, icon: Icons.Eye, color: 'bg-purple-500/10 text-purple-500', link: profileLink },
   ], [stats, profileLink]);
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-[60vh] w-full">
-      <Icons.Loader className="animate-spin text-[var(--accent-500)]" size={32} />
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] w-full">
+        <Icons.Loader className="animate-spin text-[var(--accent-500)]" size={32} />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full pb-20 p-4 lg:p-6 max-w-[1600px] mx-auto">
-      {/* ===== HEADER ===== */}
       <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">
@@ -184,7 +211,6 @@ export default function DashboardPage() {
         </button>
       </header>
 
-      {/* ===== STATS GRID ===== */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
         {statsCards.map((stat, i) => (
           <Link key={i} to={stat.link} className="card p-4 hover:border-[var(--accent-500)] transition-colors relative group">
@@ -207,10 +233,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-        {/* === LEFT COLUMN === */}
         <div className="lg:col-span-2 space-y-8">
-          
-          {/* 1. Profile Strength */}
           <div className="card p-6 flex flex-col sm:flex-row items-center gap-6">
             <div className="relative w-32 h-32 flex-shrink-0">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
@@ -238,7 +261,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* 2. Quick Actions */}
           <div>
             <h3 className="label mb-4">Quick Actions</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -253,7 +275,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* 3. Suggested For You (CUSTOM GRID LAYOUT) */}
           {suggestedProfiles.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -261,16 +282,14 @@ export default function DashboardPage() {
                 <Link to="/search" className="text-xs font-bold text-[var(--accent-500)]">View All</Link>
               </div>
               
-              {/* Responsive Grid: 2 cols on mobile, 3 on tablet/desktop */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                 {suggestedProfiles.map(profile => {
                   const photoUrl = profile.photos?.find(p => p.isProfile)?.url || profile.photos?.[0]?.url;
-                  const profileId = profile.userId || profile.id; // Correct ID for actions
+                  const profileId = profile.userId || profile.id;
 
                   return (
-                    <div key={profile._id} className="card p-0 overflow-hidden flex flex-col h-full group bg-[var(--surface-glass)] border border-[var(--border-subtle)]">
-                      {/* Clickable Image Area */}
-                      <Link to={`/profile/${profile.profileId || profile._id}`} className="block relative aspect-[4/5] overflow-hidden bg-gray-900">
+                    <div key={profile._id || profileId} className="card p-0 overflow-hidden flex flex-col h-full group bg-[var(--surface-glass)] border border-[var(--border-subtle)]">
+                      <Link to={`/profile/${profile.profileId || profile._id || profileId}`} className="block relative aspect-[4/5] overflow-hidden bg-gray-900">
                         {photoUrl ? (
                           <img src={photoUrl} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                         ) : (
@@ -290,7 +309,6 @@ export default function DashboardPage() {
                             <span>{profile.city || profile.country || 'Unknown'}</span>
                           </div>
                           
-                          {/* Locked Occupation Hint */}
                           {!premium && profile.occupation && (
                              <div className="flex items-center gap-1 text-[10px] text-amber-400 mt-1.5">
                                <Icons.Lock size={8} />
@@ -300,7 +318,6 @@ export default function DashboardPage() {
                         </div>
                       </Link>
 
-                      {/* Action Buttons */}
                       <div className="p-2 flex gap-2 bg-[var(--surface-glass)] border-t border-[var(--border-subtle)] mt-auto">
                         <button 
                           onClick={(e) => handleShortlist(e, profileId)}
@@ -333,10 +350,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* === RIGHT COLUMN (Sidebar) === */}
         <div className="flex flex-col gap-6">
-          
-          {/* Upgrade Card */}
           <div className="card p-6 bg-gradient-to-br from-[var(--surface-glass)] to-[var(--surface-glass-active)]">
             <h3 className="font-bold mb-2">Upgrade to Premium</h3>
             <p className="text-sm text-[var(--text-secondary)] mb-4">
@@ -348,7 +362,6 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {/* Recent Visitors */}
           <div className="card p-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="label mb-0">Recent Visitors</h3>
@@ -358,9 +371,15 @@ export default function DashboardPage() {
               See who viewed your profile recently.
             </div>
           </div>
-
         </div>
       </div>
+
+      <Toast
+        open={toastState.open}
+        message={toastState.message}
+        type={toastState.type}
+        onClose={closeToast}
+      />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+// src/components/ProfileFormStep1.jsx
 import React from 'react';
 import { Icons } from './Icons';
 
@@ -10,22 +11,30 @@ export default function ProfileFormStep1({ data, onChange }) {
     focus:border-[var(--accent-500)] focus:ring-2 focus:ring-[var(--accent-500)]/20
   `;
 
-  const selectStyles = `${inputStyles} appearance-none cursor-pointer pr-10`;
+  // Standardized select styles with custom arrow and consistent option theming
+  const selectStyles = `
+    ${inputStyles}
+    appearance-none cursor-pointer pr-10
+    bg-[length:16px_16px] bg-no-repeat bg-[right_1rem_center]
+    [&>option]:bg-[var(--bg-secondary)] [&>option]:text-[var(--text-primary)]
+  `;
+  
   const labelStyles = "block text-xs font-semibold uppercase tracking-wider mb-2 text-[var(--text-muted)]";
   const requiredStar = <span className="text-red-500 ml-1">*</span>;
   
-  const selectArrow = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`;
+  // SVG arrow encoded for background-image (color adapts if needed, currently neutral gray)
+  const selectArrow = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--accent-500)] to-[var(--accent-700)] flex items-center justify-center">
+      <div className="flex items-center gap-3 sm:gap-4">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-[var(--accent-500)] to-[var(--accent-700)] flex items-center justify-center flex-shrink-0 shadow-lg shadow-[var(--accent-500)]/20">
           <Icons.User size={20} className="text-white" />
         </div>
         <div>
-          <h2 className="text-xl font-bold">Basic Information</h2>
-          <p className="text-sm text-[var(--text-muted)]">Tell us about yourself</p>
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--text-primary)]">Basic Information</h2>
+          <p className="text-xs sm:text-sm text-[var(--text-muted)]">Tell us about yourself</p>
         </div>
       </div>
 
@@ -45,7 +54,7 @@ export default function ProfileFormStep1({ data, onChange }) {
       </div>
 
       {/* Gender & DOB */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <div>
           <label className={labelStyles}>
             Gender {requiredStar}
@@ -54,7 +63,7 @@ export default function ProfileFormStep1({ data, onChange }) {
             value={data.gender || ''}
             onChange={(e) => onChange('gender', e.target.value)}
             className={selectStyles}
-            style={{ backgroundImage: selectArrow, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
+            style={{ backgroundImage: selectArrow }}
             required
           >
             <option value="">Select Gender</option>
@@ -73,15 +82,15 @@ export default function ProfileFormStep1({ data, onChange }) {
             onChange={(e) => onChange('dateOfBirth', e.target.value)}
             max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
             min={new Date(new Date().setFullYear(new Date().getFullYear() - 80)).toISOString().split('T')[0]}
-            className={inputStyles}
+            className={`${inputStyles} [color-scheme:dark] dark:[color-scheme:dark] light:[color-scheme:light]`} 
             required
           />
-          <p className="text-[10px] text-[var(--text-muted)] mt-1">You must be at least 18 years old</p>
+          <p className="text-[10px] text-[var(--text-muted)] mt-1.5 ml-1">You must be at least 18 years old</p>
         </div>
       </div>
 
       {/* Marital Status & Religion */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <div>
           <label className={labelStyles}>
             Marital Status {requiredStar}
@@ -90,7 +99,7 @@ export default function ProfileFormStep1({ data, onChange }) {
             value={data.maritalStatus || ''}
             onChange={(e) => onChange('maritalStatus', e.target.value)}
             className={selectStyles}
-            style={{ backgroundImage: selectArrow, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
+            style={{ backgroundImage: selectArrow }}
             required
           >
             <option value="">Select Marital Status</option>
@@ -110,7 +119,7 @@ export default function ProfileFormStep1({ data, onChange }) {
             value={data.religion || ''}
             onChange={(e) => onChange('religion', e.target.value)}
             className={selectStyles}
-            style={{ backgroundImage: selectArrow, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
+            style={{ backgroundImage: selectArrow }}
             required
           >
             <option value="">Select Religion</option>
@@ -128,29 +137,21 @@ export default function ProfileFormStep1({ data, onChange }) {
       </div>
 
       {/* Mother Tongue & Caste */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <div>
           <label className={labelStyles}>Mother Tongue</label>
           <select
             value={data.motherTongue || ''}
             onChange={(e) => onChange('motherTongue', e.target.value)}
             className={selectStyles}
-            style={{ backgroundImage: selectArrow, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
+            style={{ backgroundImage: selectArrow }}
           >
             <option value="">Select Language (Optional)</option>
-            <option value="Hindi">Hindi</option>
-            <option value="English">English</option>
+            <option value="Sinhala">Sinhala</option>
             <option value="Tamil">Tamil</option>
-            <option value="Telugu">Telugu</option>
-            <option value="Kannada">Kannada</option>
-            <option value="Malayalam">Malayalam</option>
-            <option value="Bengali">Bengali</option>
-            <option value="Marathi">Marathi</option>
-            <option value="Gujarati">Gujarati</option>
-            <option value="Punjabi">Punjabi</option>
-            <option value="Urdu">Urdu</option>
-            <option value="Odia">Odia</option>
-            <option value="Assamese">Assamese</option>
+            <option value="English">English</option>
+            <option value="Hindi">Hindi</option>
+            <option value="Malay">Malay</option>
             <option value="Other">Other</option>
           </select>
         </div>
@@ -170,27 +171,29 @@ export default function ProfileFormStep1({ data, onChange }) {
       {/* Bio */}
       <div>
         <label className={labelStyles}>
-          <Icons.FileText size={12} className="inline mr-1" />
-          About Yourself
+          <div className="flex items-center gap-1.5">
+            <Icons.FileText size={14} className="text-[var(--text-muted)]" />
+            <span>About Yourself</span>
+          </div>
         </label>
         <textarea
           value={data.bio || ''}
           onChange={(e) => onChange('bio', e.target.value)}
-          placeholder="Write a brief introduction about yourself... (optional)"
+          placeholder="Write a brief introduction about yourself, your background, and what you're looking for... (optional)"
           rows={4}
           maxLength={1000}
-          className={`${inputStyles} resize-none`}
+          className={`${inputStyles} resize-none min-h-[120px]`}
         />
-        <p className="text-[10px] text-[var(--text-muted)] mt-1 text-right">
+        <p className="text-[10px] text-[var(--text-muted)] mt-1.5 text-right font-medium">
           {(data.bio || '').length}/1000 characters
         </p>
       </div>
 
       {/* Required Fields Note */}
-      <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-        <Icons.Info size={14} className="text-amber-500 flex-shrink-0" />
-        <p className="text-xs text-amber-500/80">
-          Fields marked with <span className="text-red-500">*</span> are required
+      <div className="flex items-start sm:items-center gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+        <Icons.Info size={16} className="text-amber-500 flex-shrink-0 mt-0.5 sm:mt-0" />
+        <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+          Fields marked with <span className="text-red-500 font-bold">*</span> are required to proceed.
         </p>
       </div>
     </div>
