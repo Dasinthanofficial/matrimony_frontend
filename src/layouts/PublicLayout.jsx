@@ -7,8 +7,8 @@ export default function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col">
       <PublicNavbar />
-      {/* ✅ Safe area & fixed navbar offset */}
-      <main className="pt-[calc(3.5rem+env(safe-area-inset-top))] sm:pt-[4.5rem+env(safe-area-inset-top)] flex-1">
+      {/* ✅ Safe area & fixed navbar offset - Added lg:pt to account for h-20 navbar */}
+      <main className="pt-[calc(3.5rem+env(safe-area-inset-top))] sm:pt-[4.5rem+env(safe-area-inset-top)] lg:pt-[calc(5.5rem+env(safe-area-inset-top))] flex-1">
         <Outlet />
       </main>
       <PublicFooter />

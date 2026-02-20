@@ -1,4 +1,3 @@
-// ===== FILE: ./src/pages/PricingPage.jsx =====
 import React, { useEffect, useMemo, useState } from 'react';
 import { subscriptionAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -121,9 +120,10 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen pb-20 p-4 lg:p-6 max-w-[1200px] mx-auto">
+    // Increased top padding/margin to prevent navbar overlap
+    <div className="min-h-screen pb-20 p-4 pt-10 lg:p-6 max-w-[1200px] mx-auto">
       {/* Header - Fixed Colors for Light/Dark Mode */}
-      <div className="text-center mb-12 mt-6 space-y-3 px-2">
+      <div className="text-center mb-12 mt-8 lg:mt-10 space-y-3 px-2">
         <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white">
           Simple, Transparent <span className="text-gradient">Pricing</span>
         </h1>
@@ -240,7 +240,7 @@ export default function PricingPage() {
                   flex items-center justify-center gap-2
                   ${isPopular 
                      ? 'bg-[var(--accent-500)] text-white hover:bg-[var(--accent-600)] shadow-lg hover:shadow-[var(--accent-500)]/40 hover:-translate-y-1' 
-                     : 'bg-white border-2 border-gray-200 hover:border-gray-900 text-gray-900 dark:bg-[var(--bg-secondary)] dark:border-[var(--border-subtle)] dark:text-[var(--text-primary)] dark:hover:bg-[var(--border-secondary)] hover:-translate-y-1'
+                     : 'bg-[var(--bg-tertiary)] border-2 border-gray-200 hover:border-gray-900 text-gray-900 dark:bg-[var(--bg-secondary)] dark:border-[var(--border-subtle)] dark:text-[var(--text-primary)] dark:hover:bg-[var(--border-secondary)] hover:-translate-y-1'
                   }
                   disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
                 `}
