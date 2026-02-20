@@ -15,18 +15,19 @@ export default function RegisterPage() {
     const agencyStatus = result?.user?.agencyVerification?.status;
 
     if (role === 'agency') {
-  if (agencyStatus === 'pending' || result?.requiresAdminApproval) {
-    navigate('/agency/pending', { replace: true });
-  } else {
-    navigate('/agency', { replace: true }); // ✅
-  }
-  return;
-}
+      if (agencyStatus === 'pending' || result?.requiresAdminApproval) {
+        navigate('/agency/pending', { replace: true });
+      } else {
+        navigate('/agency', { replace: true });
+      }
+      return;
+    }
     navigate('/dashboard', { replace: true });
   };
 
+  // Changed animate-fadeIn to animate-in fade-in to match global CSS definitions
   return (
-    <div className="w-full max-w-md animate-fadeIn">
+    <div className="w-full max-w-md animate-in fade-in">
       {/* Header */}
       <div className="text-center mb-6 sm:mb-8">
         <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[var(--accent-500)] to-[var(--accent-700)] mb-4 sm:mb-6 shadow-lg shadow-[var(--accent-500)]/20">

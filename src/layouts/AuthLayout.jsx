@@ -1,4 +1,3 @@
-// ===== FILE: ./src/layouts/AuthLayout.jsx =====
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
@@ -8,7 +7,8 @@ export default function AuthLayout() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col relative overflow-hidden">
+    // Changed overflow-hidden to overflow-x-hidden to allow vertical scrolling
+    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col relative overflow-x-hidden">
       {/* Background effects — shared across all auth pages */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-40 -left-40 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] rounded-full bg-[var(--accent-500)]/8 blur-[100px] sm:blur-[120px]" />
@@ -43,8 +43,11 @@ export default function AuthLayout() {
       </header>
 
       {/* Content */}
-      <main className="relative z-10 flex-1 flex items-center justify-center p-4 sm:p-6">
-        <Outlet />
+      {/* Changed centering logic: use flex-col and let child use margin-auto to avoid clipping top on overflow */}
+      <main className="relative z-10 flex-1 flex flex-col p-4 sm:p-6">
+        <div className="w-full m-auto flex justify-center">
+          <Outlet />
+        </div>
       </main>
 
       {/* Footer */}
