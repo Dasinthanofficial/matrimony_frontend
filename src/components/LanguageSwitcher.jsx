@@ -8,14 +8,15 @@ export default function LanguageSwitcher() {
 
   return (
     <div style={{ marginTop: 12, marginBottom: 12 }}>
-      <label style={{ marginRight: 8 }}>{t("selectLanguage")}:</label>
+      <label style={{ marginRight: 8 }}>{t("common.language")}:</label>
       <select
+        className="select"
         value={current}
         onChange={(e) => i18n.changeLanguage(e.target.value)}
       >
-        <option value="en">{t("language.en")}</option>
-        <option value="si">{t("language.si")}</option>
-        <option value="ta">{t("language.ta")}</option>
+        <option value="en">English</option>
+        <option value="si">සිංහල</option>
+        <option value="ta">தமிழ்</option>
       </select>
     </div>
   );

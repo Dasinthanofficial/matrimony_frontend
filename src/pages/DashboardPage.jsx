@@ -2,16 +2,10 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next'; // ✅ IMPORT TRANSLATION HOOK
 import { Icons } from '../components/Icons';
 import api, { interestAPI } from '../services/api';
 import Toast from '../components/Toast';
-
-const quickActions = [
-  { name: 'Find Matches', path: '/search',    icon: Icons.Search,        color: 'bg-blue-500/10 text-blue-500'  },
-  { name: 'Interests',    path: '/interests', icon: Icons.Heart,         color: 'bg-rose-500/10 text-rose-500'  },
-  { name: 'Shortlist',    path: '/shortlist', icon: Icons.Bookmark,      color: 'bg-amber-500/10 text-amber-500'},
-  { name: 'Messages',     path: '/chat',      icon: Icons.MessageSquare, color: 'bg-green-500/10 text-green-500'},
-];
 
 const formatTimeAgo = (dateString) => {
   if (!dateString) return '';
@@ -31,6 +25,7 @@ const formatTimeAgo = (dateString) => {
 export default function DashboardPage() {
   const { user, refreshUser, hasPremiumAccess } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation(); // ✅ INITIALIZE TRANSLATION FUNCTION
   const premium = hasPremiumAccess();
 
   const [loading,  setLoading]  = useState(true);
@@ -56,6 +51,14 @@ export default function DashboardPage() {
   const showToast = (message, type = 'success') => setToastState({ open: true, message, type });
   const closeToast = () => setToastState(prev => ({ ...prev, open: false }));
 
+  // ✅ MOVED QUICK ACTIONS INSIDE COMPONENT TO ACCESS t()
+  const quickActions = useMemo(() => [
+    { name: t('nav.search'),      path: '/search',    icon: Icons.Search,        color: 'bg-blue-500/10 text-blue-500'  },
+    { name: t('nav.matches'),     path: '/interests', icon: Icons.Heart,         color: 'bg-rose-500/10 text-rose-500'  },
+    { name: t('matches.shortlist'),path: '/shortlist', icon: Icons.Bookmark,      color: 'bg-amber-500/10 text-amber-500'},
+    { name: t('nav.messages'),    path: '/chat',      icon: Icons.MessageSquare, color: 'bg-green-500/10 text-green-500'},
+  ], [t]);
+
   const loadDashboardData = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -72,7 +75,6 @@ export default function DashboardPage() {
           setStats(prev => ({ ...prev, profileViews: myProfileRes.profile.profileViews || 0 }));
         }
       } catch (e) { 
-        // FIX 1: Ignore 404 errors (New users don't have a profile yet)
         if (e.response?.status !== 404) {
           console.warn("Completion load failed", e); 
         }
@@ -108,15 +110,14 @@ export default function DashboardPage() {
 
     } catch (err) {
       console.error('Dashboard load error:', err);
-      // Only show error if it's critical (not just a 404 on profile)
       if (err.response?.status !== 404) {
-        setError('Failed to load dashboard');
-        showToast('Failed to load dashboard data.', 'error');
+        setError(t('errors.unknown'));
+        showToast(t('errors.unknown'), 'error');
       }
     } finally {
       setLoading(false);
     }
-  }, [refreshUser]);
+  }, [refreshUser, t]);
 
   useEffect(() => {
     loadDashboardData();
@@ -132,12 +133,11 @@ export default function DashboardPage() {
       setSuggestedProfiles(prev => prev.filter(p => (p.userId !== profileId && p.id !== profileId)));
       showToast('Interest sent successfully!', 'success');
     } catch (err) {
-      // Handle "Already Sent" case nicely
       const msg = err.response?.data?.message || err.message || "";
       if (msg.toLowerCase().includes('already')) {
         showToast('You have already sent an interest.', 'info');
       } else {
-        showToast('Failed to send interest. Try again.', 'error');
+        showToast(t('errors.unknown'), 'error');
       }
     } finally {
       setSendingInterest(null);
@@ -151,14 +151,12 @@ export default function DashboardPage() {
       await interestAPI.addToShortlist(profileId);
       showToast('Profile added to your shortlist!', 'success');
     } catch (err) {
-      // FIX 2: Handle "Already Shortlisted" 400 Error
       const msg = err.response?.data?.message || err.message || "";
-      
       if (msg.toLowerCase().includes('already')) {
         showToast('This profile is already in your shortlist.', 'info');
       } else {
         console.error(err);
-        showToast('Unable to shortlist this profile right now.', 'error');
+        showToast(t('errors.unknown'), 'error');
       }
     }
   };
@@ -170,14 +168,14 @@ export default function DashboardPage() {
 
   const displayName  = useMemo(() => user?.fullName || user?.email?.split('@')[0] || 'User', [user]);
   const profileLink  = useMemo(() => (user?.profileId ? `/profile/${user.profileId}` : '/complete-profile'), [user]);
-  const hasProfile   = useMemo(() => !!user?.profileId || completionPct > 0, [user, completionPct]);
 
+  // ✅ STATS TRANSLATIONS APPLIED HERE
   const statsCards = useMemo(() => [
-    { label: 'Received', value: stats.interestsReceived, icon: Icons.Heart, color: 'bg-rose-500/10 text-rose-500', link: '/interests' },
-    { label: 'Matches', value: stats.matches, icon: Icons.Users, color: 'bg-green-500/10 text-green-500', link: '/interests' },
-    { label: 'Messages', value: stats.conversations, icon: Icons.MessageSquare, color: 'bg-blue-500/10 text-blue-500', link: '/chat', badge: stats.unreadMessages },
-    { label: 'Views', value: stats.profileViews, icon: Icons.Eye, color: 'bg-purple-500/10 text-purple-500', link: profileLink },
-  ], [stats, profileLink]);
+    { label: t('nav.matches'), value: stats.interestsReceived, icon: Icons.Heart, color: 'bg-rose-500/10 text-rose-500', link: '/interests' },
+    { label: t('matches.title'), value: stats.matches, icon: Icons.Users, color: 'bg-green-500/10 text-green-500', link: '/interests' },
+    { label: t('nav.messages'), value: stats.conversations, icon: Icons.MessageSquare, color: 'bg-blue-500/10 text-blue-500', link: '/chat', badge: stats.unreadMessages },
+    { label: t('common.view'), value: stats.profileViews, icon: Icons.Eye, color: 'bg-purple-500/10 text-purple-500', link: profileLink },
+  ], [stats, profileLink, t]);
 
   if (loading) {
     return (
@@ -192,22 +190,23 @@ export default function DashboardPage() {
       <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">
-            Welcome, <span className="text-gradient">{displayName}</span>
+            {/* ✅ Welcome Translated */}
+            {t('auth.welcomeBack')}, <span className="text-gradient">{displayName}</span>
           </h1>
           <div className="flex items-center gap-3 mt-2">
             <span className="badge-success flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              Online
+              {t('chat.online')}
             </span>
             {premium && (
               <span className="badge-warning flex items-center gap-1">
-                <Icons.Crown size={12} /> Premium
+                <Icons.Crown size={12} /> {t('subscription.premiumPlan')}
               </span>
             )}
           </div>
         </div>
         <button onClick={loadDashboardData} className="btn-secondary self-start md:self-auto">
-          <Icons.RefreshCw size={16} /> Refresh
+          <Icons.RefreshCw size={16} /> {t('common.retry').replace('Retry', 'Refresh')}
         </button>
       </header>
 
@@ -247,23 +246,22 @@ export default function DashboardPage() {
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-2xl font-bold">{completionPct}%</span>
-                <span className="text-[10px] uppercase text-[var(--text-muted)]">Complete</span>
               </div>
             </div>
             <div className="flex-1 text-center sm:text-left">
-              <h3 className="font-bold text-lg mb-2">Profile Status</h3>
+              {/* ✅ Translation added here */}
+              <h3 className="font-bold text-lg mb-2">{t('dashboard.profileStrength')}</h3>
               <p className="text-sm text-[var(--text-secondary)] mb-4">
-                {completionPct < 50 ? "Complete your profile to get noticed by more matches." : "Your profile is looking great! Keep it updated."}
+                {completionPct < 50 ? t('dashboard.completeYourProfile') : "Your profile is looking great! Keep it updated."}
               </p>
               <Link to="/complete-profile" className="btn-secondary inline-flex">
-                <Icons.Edit size={16} className="mr-2" /> Update Details
+                <Icons.Edit size={16} className="mr-2" /> {t('profile.editTitle')}
               </Link>
             </div>
           </div>
 
           <div>
-            <h3 className="label mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
               {quickActions.map(action => (
                 <Link key={action.path} to={action.path} className="card p-4 flex flex-col items-center justify-center gap-3 hover:bg-[var(--surface-glass-active)] transition-colors text-center h-28">
                   <div className={`p-2.5 rounded-full ${action.color}`}>
@@ -278,8 +276,9 @@ export default function DashboardPage() {
           {suggestedProfiles.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="label mb-0">Suggested for You</h3>
-                <Link to="/search" className="text-xs font-bold text-[var(--accent-500)]">View All</Link>
+                {/* ✅ Suggested profiles heading */}
+                <h3 className="label mb-0">{t('dashboard.recentMatches')}</h3>
+                <Link to="/search" className="text-xs font-bold text-[var(--accent-500)]">{t('common.view')} All</Link>
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
@@ -322,17 +321,17 @@ export default function DashboardPage() {
                         <button 
                           onClick={(e) => handleShortlist(e, profileId)}
                           className="flex-1 btn-secondary py-1.5 px-0 h-8 justify-center min-w-0"
-                          title="Shortlist"
+                          title={t('matches.shortlist')}
                         >
                           <Icons.Bookmark size={14} />
-                          <span className="hidden xl:inline ml-1 text-[10px] font-bold truncate">Save</span>
+                          <span className="hidden xl:inline ml-1 text-[10px] font-bold truncate">{t('common.save')}</span>
                         </button>
                         
                         <button 
                           onClick={(e) => handleConnect(e, profileId)}
                           disabled={sendingInterest === profileId}
                           className="flex-1 btn-primary py-1.5 px-0 h-8 justify-center min-w-0"
-                          title="Connect"
+                          title={t('matches.request')}
                         >
                           {sendingInterest === profileId ? (
                             <Icons.Loader size={14} className="animate-spin" />
@@ -352,20 +351,20 @@ export default function DashboardPage() {
 
         <div className="flex flex-col gap-6">
           <div className="card p-6 bg-gradient-to-br from-[var(--surface-glass)] to-[var(--surface-glass-active)]">
-            <h3 className="font-bold mb-2">Upgrade to Premium</h3>
+            <h3 className="font-bold mb-2">{t('dashboard.upgradeToPremium')}</h3>
             <p className="text-sm text-[var(--text-secondary)] mb-4">
               Get 3x more matches and view contact details.
             </p>
             <Link to="/pricing" className="btn-primary w-full justify-center">
               <Icons.Zap size={16} className="mr-2" />
-              Upgrade Now
+              {t('subscription.upgrade')}
             </Link>
           </div>
 
           <div className="card p-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="label mb-0">Recent Visitors</h3>
-              <Link to="/visitors" className="text-xs font-bold text-[var(--accent-500)]">View All</Link>
+              <Link to="/visitors" className="text-xs font-bold text-[var(--accent-500)]">{t('common.view')} All</Link>
             </div>
             <div className="text-sm text-[var(--text-muted)]">
               See who viewed your profile recently.
