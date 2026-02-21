@@ -1,5 +1,5 @@
 // src/pages/DashboardPage.jsx
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -22,11 +22,23 @@ const formatTimeAgo = (dateString) => {
   return date.toLocaleDateString();
 };
 
+// ✅ Helper: checks if an error is just a "profile not found" (normal for new users)
+const isProfileNotFound = (err) => {
+  if (!err) return false;
+  if (err.response?.status === 404) return true;
+  if (typeof err.message === 'string' && err.message.toLowerCase().includes('not found')) return true;
+  if (typeof err === 'string' && err.toLowerCase().includes('not found')) return true;
+  return false;
+};
+
 export default function DashboardPage() {
   const { user, refreshUser, hasPremiumAccess } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const premium = hasPremiumAccess();
+
+  // ✅ Use a ref to prevent double-fetching in React StrictMode
+  const hasFetched = useRef(false);
 
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState('');
@@ -52,81 +64,86 @@ export default function DashboardPage() {
   const closeToast = () => setToastState(prev => ({ ...prev, open: false }));
 
   const quickActions = useMemo(() => [
-    { name: t('nav.search'),      path: '/search',    icon: Icons.Search,        color: 'bg-blue-500/10 text-blue-500'  },
-    { name: t('nav.matches'),     path: '/interests', icon: Icons.Heart,         color: 'bg-rose-500/10 text-rose-500'  },
-    { name: t('matches.shortlist'),path: '/shortlist', icon: Icons.Bookmark,      color: 'bg-amber-500/10 text-amber-500'},
-    { name: t('nav.messages'),    path: '/chat',      icon: Icons.MessageSquare, color: 'bg-green-500/10 text-green-500'},
+    { name: t('nav.search'),       path: '/search',    icon: Icons.Search,        color: 'bg-blue-500/10 text-blue-500'  },
+    { name: t('nav.matches'),      path: '/interests', icon: Icons.Heart,         color: 'bg-rose-500/10 text-rose-500'  },
+    { name: t('matches.shortlist'),path: '/shortlist',  icon: Icons.Bookmark,      color: 'bg-amber-500/10 text-amber-500'},
+    { name: t('nav.messages'),     path: '/chat',       icon: Icons.MessageSquare, color: 'bg-green-500/10 text-green-500'},
   ], [t]);
 
-  const loadDashboardData = useCallback(async () => {
+  // ✅ Regular async function (NOT useCallback) — avoids dependency loop entirely
+  const loadDashboardData = async () => {
     setLoading(true);
     setError('');
     try {
       await refreshUser();
-      
-      // 1. Load Profile Completion
+
+      // 1. Load Profile Completion — safely ignore 404 for new users
       try {
         const compRes = await api.profile.getCompletion();
         setCompletionData({ percentage: compRes.percentage || 0, details: compRes.details || {} });
-        
+
         const myProfileRes = await api.profile.getMyProfile();
         if (myProfileRes.profile) {
           setStats(prev => ({ ...prev, profileViews: myProfileRes.profile.profileViews || 0 }));
         }
-      } catch (e) { 
-        // ✅ FIX: Safely ignore "Profile not found" (404) for new users without spamming console
-        const isNotFound = e.response?.status === 404 || e.message?.toLowerCase().includes('not found');
-        if (!isNotFound) {
-          console.warn("Completion load failed", e); 
+      } catch (e) {
+        // ✅ FIX: Check BOTH .response.status AND .message string
+        if (!isProfileNotFound(e)) {
+          console.warn("Completion load failed", e);
         }
+        // else: new user, no profile yet — perfectly normal, do nothing
       }
 
       // 2. Load Suggested
       try {
         const suggRes = await api.search.getSuggested(4);
         setSuggestedProfiles(suggRes.profiles || []);
-      } catch (e) { console.warn("Suggested load failed", e); }
+      } catch (e) {
+        if (!isProfileNotFound(e)) {
+          console.warn("Suggested load failed", e);
+        }
+      }
 
       // 3. Load Stats (Parallel)
       const [receivedRes, sentRes, matchesRes, chatRes, unreadRes, shortlistRes] = await Promise.all([
-        api.interest.getReceived({ page: 1, limit: 1 }).catch(()=>({})),
-        api.interest.getSent({ page: 1, limit: 1 }).catch(()=>({})),
-        api.interest.getAccepted({ page: 1, limit: 1 }).catch(()=>({})),
-        api.chat.getConversations({ page: 1, limit: 1 }).catch(()=>({})),
-        api.chat.getUnreadCount().catch(()=>({ unreadCount: 0 })),
-        api.interest.getShortlist({ page: 1, limit: 1 }).catch(()=>({})),
+        api.interest.getReceived({ page: 1, limit: 1 }).catch(() => ({})),
+        api.interest.getSent({ page: 1, limit: 1 }).catch(() => ({})),
+        api.interest.getAccepted({ page: 1, limit: 1 }).catch(() => ({})),
+        api.chat.getConversations({ page: 1, limit: 1 }).catch(() => ({})),
+        api.chat.getUnreadCount().catch(() => ({ unreadCount: 0 })),
+        api.interest.getShortlist({ page: 1, limit: 1 }).catch(() => ({})),
       ]);
 
       setStats(prev => ({
         ...prev,
         interestsReceived: receivedRes.pagination?.total || 0,
-        interestsSent: sentRes.pagination?.total || 0,
-        matches: matchesRes.pagination?.total || 0,
-        conversations: chatRes.conversations?.length || 0,
-        unreadMessages: unreadRes.unreadCount || 0,
-        shortlistCount: shortlistRes.pagination?.total || 0
+        interestsSent:     sentRes.pagination?.total || 0,
+        matches:           matchesRes.pagination?.total || 0,
+        conversations:     chatRes.conversations?.length || 0,
+        unreadMessages:    unreadRes.unreadCount || 0,
+        shortlistCount:    shortlistRes.pagination?.total || 0
       }));
 
-      setRecentActivity([]); 
+      setRecentActivity([]);
 
     } catch (err) {
-      console.error('Dashboard load error:', err);
-      // ✅ FIX: Prevent showing red error toasts for normal 404s
-      const isNotFound = err.response?.status === 404 || err.message?.toLowerCase().includes('not found');
-      if (!isNotFound) {
-        setError(t('errors.unknown'));
-        showToast(t('errors.unknown'), 'error');
+      if (!isProfileNotFound(err)) {
+        console.error('Dashboard load error:', err);
+        setError('Failed to load dashboard');
+        showToast('Failed to load dashboard data.', 'error');
       }
     } finally {
       setLoading(false);
     }
-  }, [refreshUser, t]);
+  };
 
-  // ✅ FIX: Empty dependency array stops the infinite fetch loop!
+  // ✅ FIX: Runs EXACTLY ONCE on mount — no dependency array issues
   useEffect(() => {
+    if (hasFetched.current) return; // prevent double-call in React 18 StrictMode
+    hasFetched.current = true;
     loadDashboardData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, []);
 
   const handleConnect = async (e, profileId) => {
     e.preventDefault();
@@ -142,7 +159,7 @@ export default function DashboardPage() {
       if (msg.toLowerCase().includes('already')) {
         showToast('You have already sent an interest.', 'info');
       } else {
-        showToast(t('errors.unknown'), 'error');
+        showToast('Failed to send interest. Try again.', 'error');
       }
     } finally {
       setSendingInterest(null);
@@ -161,7 +178,7 @@ export default function DashboardPage() {
         showToast('This profile is already in your shortlist.', 'info');
       } else {
         console.error(err);
-        showToast(t('errors.unknown'), 'error');
+        showToast('Unable to shortlist this profile right now.', 'error');
       }
     }
   };
@@ -171,14 +188,14 @@ export default function DashboardPage() {
     return Math.min(100, Math.max(0, Math.round(pct)));
   }, [completionData, user]);
 
-  const displayName  = useMemo(() => user?.fullName || user?.email?.split('@')[0] || 'User', [user]);
-  const profileLink  = useMemo(() => (user?.profileId ? `/profile/${user.profileId}` : '/complete-profile'), [user]);
+  const displayName = useMemo(() => user?.fullName || user?.email?.split('@')[0] || 'User', [user]);
+  const profileLink = useMemo(() => (user?.profileId ? `/profile/${user.profileId}` : '/complete-profile'), [user]);
 
   const statsCards = useMemo(() => [
-    { label: t('nav.matches'), value: stats.interestsReceived, icon: Icons.Heart, color: 'bg-rose-500/10 text-rose-500', link: '/interests' },
-    { label: t('matches.title'), value: stats.matches, icon: Icons.Users, color: 'bg-green-500/10 text-green-500', link: '/interests' },
-    { label: t('nav.messages'), value: stats.conversations, icon: Icons.MessageSquare, color: 'bg-blue-500/10 text-blue-500', link: '/chat', badge: stats.unreadMessages },
-    { label: t('common.view'), value: stats.profileViews, icon: Icons.Eye, color: 'bg-purple-500/10 text-purple-500', link: profileLink },
+    { label: t('nav.matches'),   value: stats.interestsReceived, icon: Icons.Heart,         color: 'bg-rose-500/10 text-rose-500',   link: '/interests' },
+    { label: t('matches.title'), value: stats.matches,           icon: Icons.Users,         color: 'bg-green-500/10 text-green-500', link: '/interests' },
+    { label: t('nav.messages'),  value: stats.conversations,     icon: Icons.MessageSquare, color: 'bg-blue-500/10 text-blue-500',   link: '/chat', badge: stats.unreadMessages },
+    { label: t('common.view'),   value: stats.profileViews,      icon: Icons.Eye,           color: 'bg-purple-500/10 text-purple-500',link: profileLink },
   ], [stats, profileLink, t]);
 
   if (loading) {
@@ -208,8 +225,9 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-        <button onClick={loadDashboardData} className="btn-secondary self-start md:self-auto">
-          <Icons.RefreshCw size={16} /> {t('common.retry').replace('Retry', 'Refresh')}
+        {/* ✅ Manual refresh button still works */}
+        <button onClick={() => { hasFetched.current = false; loadDashboardData(); }} className="btn-secondary self-start md:self-auto">
+          <Icons.RefreshCw size={16} /> Refresh
         </button>
       </header>
 
@@ -281,7 +299,7 @@ export default function DashboardPage() {
                 <h3 className="label mb-0">{t('dashboard.recentMatches')}</h3>
                 <Link to="/search" className="text-xs font-bold text-[var(--accent-500)]">{t('common.view')} All</Link>
               </div>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                 {suggestedProfiles.map(profile => {
                   const photoUrl = profile.photos?.find(p => p.isProfile)?.url || profile.photos?.[0]?.url;
@@ -297,9 +315,9 @@ export default function DashboardPage() {
                             {(profile.fullName?.[0] || 'U')}
                           </div>
                         )}
-                        
+
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-90" />
-                        
+
                         <div className="absolute bottom-0 left-0 right-0 p-3">
                           <h4 className="text-white font-bold text-sm truncate">
                             {profile.fullName}, {profile.age}
@@ -308,18 +326,18 @@ export default function DashboardPage() {
                             <Icons.MapPin size={10} />
                             <span>{profile.city || profile.country || 'Unknown'}</span>
                           </div>
-                          
+
                           {!premium && profile.occupation && (
-                             <div className="flex items-center gap-1 text-[10px] text-amber-400 mt-1.5">
-                               <Icons.Lock size={8} />
-                               <span>Upgrade to see info</span>
-                             </div>
+                            <div className="flex items-center gap-1 text-[10px] text-amber-400 mt-1.5">
+                              <Icons.Lock size={8} />
+                              <span>Upgrade to see info</span>
+                            </div>
                           )}
                         </div>
                       </Link>
 
                       <div className="p-2 flex gap-2 bg-[var(--surface-glass)] border-t border-[var(--border-subtle)] mt-auto">
-                        <button 
+                        <button
                           onClick={(e) => handleShortlist(e, profileId)}
                           className="flex-1 btn-secondary py-1.5 px-0 h-8 justify-center min-w-0"
                           title={t('matches.shortlist')}
@@ -327,8 +345,8 @@ export default function DashboardPage() {
                           <Icons.Bookmark size={14} />
                           <span className="hidden xl:inline ml-1 text-[10px] font-bold truncate">{t('common.save')}</span>
                         </button>
-                        
-                        <button 
+
+                        <button
                           onClick={(e) => handleConnect(e, profileId)}
                           disabled={sendingInterest === profileId}
                           className="flex-1 btn-primary py-1.5 px-0 h-8 justify-center min-w-0"
