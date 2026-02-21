@@ -1,7 +1,7 @@
+// src/components/RegisterForm.jsx
 import React, { useMemo, useState } from 'react';
 import { Icons } from './Icons';
 import { getCountries, getCountryCallingCode } from 'libphonenumber-js';
-import i18n, { normalizeLang, persistLanguage } from '../i18n';
 
 const isoToFlagEmoji = (iso2) => {
   if (!iso2 || iso2.length !== 2) return '';
@@ -27,12 +27,6 @@ const ALL_COUNTRY_OPTIONS = getCountries()
 export default function RegisterForm({ onSubmit }) {
   const [role, setRole] = useState('user'); // user | agency
   const [fullName, setFullName] = useState('');
-
-  // Language selection lives ONLY here (RegisterPage removed its own dropdown)
-  const [preferredLanguage, setPreferredLanguage] = useState(() =>
-    normalizeLang(localStorage.getItem('i18nextLng') || i18n.language || 'en')
-  );
-
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [countryIso2, setCountryIso2] = useState('LK');
@@ -64,17 +58,6 @@ export default function RegisterForm({ onSubmit }) {
     () => ALL_COUNTRY_OPTIONS.find((c) => c.iso2 === countryIso2) || ALL_COUNTRY_OPTIONS[0],
     [countryIso2]
   );
-
-  const onChangeLanguage = async (lng) => {
-    const next = normalizeLang(lng);
-    setPreferredLanguage(next);
-    persistLanguage(next); // keep localStorage consistent with i18next
-    try {
-      await i18n.changeLanguage(next); // apply immediately on this screen
-    } catch {
-      // ignore
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -111,9 +94,6 @@ export default function RegisterForm({ onSubmit }) {
     fd.append('fullName', fullName.trim());
     fd.append('password', password);
     fd.append('email', email.trim());
-
-    // send preferredLanguage to backend
-    fd.append('preferredLanguage', normalizeLang(preferredLanguage));
 
     if (hasPhone) {
       fd.append('phone', phone.replace(/\D/g, ''));
@@ -156,17 +136,6 @@ export default function RegisterForm({ onSubmit }) {
         <button type="button" className={role === 'agency' ? 'btn-primary' : 'btn-secondary'} onClick={() => setRole('agency')} disabled={loading}>
           Agency
         </button>
-      </div>
-
-      {/* Language */}
-      <div>
-        <label className="label">Language *</label>
-        <select className="select w-full" value={preferredLanguage} onChange={(e) => onChangeLanguage(e.target.value)} disabled={loading}>
-          <option value="en">English</option>
-          <option value="si">සිංහල</option>
-          <option value="ta">தமிழ்</option>
-        </select>
-        <p className="text-xs text-[var(--text-muted)] mt-1">You can change this later in Settings.</p>
       </div>
 
       {/* Name */}

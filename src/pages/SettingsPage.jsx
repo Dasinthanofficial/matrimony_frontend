@@ -1,13 +1,13 @@
-import React, { useMemo, useState } from 'react';
+// src/pages/SettingsPage.jsx
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { authAPI, userAPI } from '../services/api';
+import { authAPI } from '../services/api';
 import { Icons } from '../components/Icons';
-import i18n, { normalizeLang, persistLanguage } from '../i18n';
 
 export default function SettingsPage() {
-  const { user, logout, refreshUser } = useAuth();
+  const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -19,33 +19,6 @@ export default function SettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState('');
-
-  // Language state
-  const initialLang = useMemo(() => {
-    return normalizeLang(user?.preferredLanguage || localStorage.getItem('i18nextLng') || i18n.language || 'en');
-  }, [user?.preferredLanguage]);
-
-  const [lang, setLang] = useState(initialLang);
-  const [savingLang, setSavingLang] = useState(false);
-
-  const saveLanguage = async () => {
-    try {
-      setSavingLang(true);
-      const next = normalizeLang(lang);
-
-      await userAPI.updateMyLanguage(next);
-
-      persistLanguage(next);
-      await i18n.changeLanguage(next);
-
-      await refreshUser();
-      alert('Language updated');
-    } catch (e) {
-      alert(e?.message || 'Failed to update language');
-    } finally {
-      setSavingLang(false);
-    }
-  };
 
   const handleDeleteAccount = async (e) => {
     e.preventDefault();
@@ -88,36 +61,6 @@ export default function SettingsPage() {
       </header>
 
       <div className="space-y-6">
-        {/* Language */}
-        <div className="card p-6">
-          <h3 className="font-semibold mb-4 flex items-center gap-2">
-            <Icons.Languages size={16} className="text-[var(--accent-500)]" />
-            Language
-          </h3>
-
-          <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-            <div className="flex-1">
-              <p className="font-medium mb-1">Preferred Language</p>
-              <p className="text-sm text-[var(--text-muted)]">
-                This will be used across your account after login.
-              </p>
-            </div>
-
-            <div className="flex gap-3 sm:items-center">
-              <select className="select" value={lang} onChange={(e) => setLang(e.target.value)}>
-                <option value="en">English</option>
-                <option value="si">සිංහල</option>
-                <option value="ta">தமிழ்</option>
-              </select>
-
-              <button onClick={saveLanguage} disabled={savingLang} className="btn-primary">
-                {savingLang ? <Icons.Loader size={16} className="animate-spin" /> : <Icons.Check size={16} />}
-                <span>{savingLang ? 'Saving...' : 'Save'}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* Account */}
         <div className="card p-6">
           <h3 className="font-semibold mb-4 flex items-center gap-2">
@@ -158,7 +101,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* ✅ Privacy */}
+        {/* Privacy */}
         <div className="card p-6">
           <h3 className="font-semibold mb-4 flex items-center gap-2">
             <Icons.Shield size={16} className="text-[var(--accent-500)]" />

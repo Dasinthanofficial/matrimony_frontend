@@ -2,7 +2,6 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { Icons } from '../components/Icons';
 import api, { interestAPI } from '../services/api';
 import Toast from '../components/Toast';
@@ -22,7 +21,6 @@ const formatTimeAgo = (dateString) => {
   return date.toLocaleDateString();
 };
 
-// ✅ Helper: checks if an error is just a "profile not found" (normal for new users)
 const isProfileNotFound = (err) => {
   if (!err) return false;
   if (err.response?.status === 404) return true;
@@ -34,10 +32,8 @@ const isProfileNotFound = (err) => {
 export default function DashboardPage() {
   const { user, refreshUser, hasPremiumAccess } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const premium = hasPremiumAccess();
 
-  // ✅ Use a ref to prevent double-fetching in React StrictMode
   const hasFetched = useRef(false);
 
   const [loading,  setLoading]  = useState(true);
@@ -58,26 +54,23 @@ export default function DashboardPage() {
   const [recentActivity,    setRecentActivity]    = useState([]);
   const [suggestedProfiles, setSuggestedProfiles] = useState([]);
 
-  // Toast State
   const [toastState, setToastState] = useState({ open: false, message: '', type: 'success' });
   const showToast = (message, type = 'success') => setToastState({ open: true, message, type });
   const closeToast = () => setToastState(prev => ({ ...prev, open: false }));
 
   const quickActions = useMemo(() => [
-    { name: t('nav.search'),       path: '/search',    icon: Icons.Search,        color: 'bg-blue-500/10 text-blue-500'  },
-    { name: t('nav.matches'),      path: '/interests', icon: Icons.Heart,         color: 'bg-rose-500/10 text-rose-500'  },
-    { name: t('matches.shortlist'),path: '/shortlist',  icon: Icons.Bookmark,      color: 'bg-amber-500/10 text-amber-500'},
-    { name: t('nav.messages'),     path: '/chat',       icon: Icons.MessageSquare, color: 'bg-green-500/10 text-green-500'},
-  ], [t]);
+    { name: 'Search',    path: '/search',    icon: Icons.Search,        color: 'bg-blue-500/10 text-blue-500'  },
+    { name: 'Matches',   path: '/interests', icon: Icons.Heart,         color: 'bg-rose-500/10 text-rose-500'  },
+    { name: 'Shortlist', path: '/shortlist', icon: Icons.Bookmark,      color: 'bg-amber-500/10 text-amber-500'},
+    { name: 'Messages',  path: '/chat',      icon: Icons.MessageSquare, color: 'bg-green-500/10 text-green-500'},
+  ], []);
 
-  // ✅ Regular async function (NOT useCallback) — avoids dependency loop entirely
   const loadDashboardData = async () => {
     setLoading(true);
     setError('');
     try {
       await refreshUser();
 
-      // 1. Load Profile Completion — safely ignore 404 for new users
       try {
         const compRes = await api.profile.getCompletion();
         setCompletionData({ percentage: compRes.percentage || 0, details: compRes.details || {} });
@@ -87,24 +80,16 @@ export default function DashboardPage() {
           setStats(prev => ({ ...prev, profileViews: myProfileRes.profile.profileViews || 0 }));
         }
       } catch (e) {
-        // ✅ FIX: Check BOTH .response.status AND .message string
-        if (!isProfileNotFound(e)) {
-          console.warn("Completion load failed", e);
-        }
-        // else: new user, no profile yet — perfectly normal, do nothing
+        if (!isProfileNotFound(e)) console.warn("Completion load failed", e);
       }
 
-      // 2. Load Suggested
       try {
         const suggRes = await api.search.getSuggested(4);
         setSuggestedProfiles(suggRes.profiles || []);
       } catch (e) {
-        if (!isProfileNotFound(e)) {
-          console.warn("Suggested load failed", e);
-        }
+        if (!isProfileNotFound(e)) console.warn("Suggested load failed", e);
       }
 
-      // 3. Load Stats (Parallel)
       const [receivedRes, sentRes, matchesRes, chatRes, unreadRes, shortlistRes] = await Promise.all([
         api.interest.getReceived({ page: 1, limit: 1 }).catch(() => ({})),
         api.interest.getSent({ page: 1, limit: 1 }).catch(() => ({})),
@@ -137,9 +122,8 @@ export default function DashboardPage() {
     }
   };
 
-  // ✅ FIX: Runs EXACTLY ONCE on mount — no dependency array issues
   useEffect(() => {
-    if (hasFetched.current) return; // prevent double-call in React 18 StrictMode
+    if (hasFetched.current) return; 
     hasFetched.current = true;
     loadDashboardData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -192,11 +176,11 @@ export default function DashboardPage() {
   const profileLink = useMemo(() => (user?.profileId ? `/profile/${user.profileId}` : '/complete-profile'), [user]);
 
   const statsCards = useMemo(() => [
-    { label: t('nav.matches'),   value: stats.interestsReceived, icon: Icons.Heart,         color: 'bg-rose-500/10 text-rose-500',   link: '/interests' },
-    { label: t('matches.title'), value: stats.matches,           icon: Icons.Users,         color: 'bg-green-500/10 text-green-500', link: '/interests' },
-    { label: t('nav.messages'),  value: stats.conversations,     icon: Icons.MessageSquare, color: 'bg-blue-500/10 text-blue-500',   link: '/chat', badge: stats.unreadMessages },
-    { label: t('common.view'),   value: stats.profileViews,      icon: Icons.Eye,           color: 'bg-purple-500/10 text-purple-500',link: profileLink },
-  ], [stats, profileLink, t]);
+    { label: 'Received Interests', value: stats.interestsReceived, icon: Icons.Heart,         color: 'bg-rose-500/10 text-rose-500',   link: '/interests' },
+    { label: 'Matches',            value: stats.matches,           icon: Icons.Users,         color: 'bg-green-500/10 text-green-500', link: '/interests' },
+    { label: 'Messages',           value: stats.conversations,     icon: Icons.MessageSquare, color: 'bg-blue-500/10 text-blue-500',   link: '/chat', badge: stats.unreadMessages },
+    { label: 'Profile Views',      value: stats.profileViews,      icon: Icons.Eye,           color: 'bg-purple-500/10 text-purple-500',link: profileLink },
+  ], [stats, profileLink]);
 
   if (loading) {
     return (
@@ -211,21 +195,20 @@ export default function DashboardPage() {
       <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">
-            {t('auth.welcomeBack')}, <span className="text-gradient">{displayName}</span>
+            Welcome back, <span className="text-gradient">{displayName}</span>
           </h1>
           <div className="flex items-center gap-3 mt-2">
             <span className="badge-success flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              {t('chat.online')}
+              Online
             </span>
             {premium && (
               <span className="badge-warning flex items-center gap-1">
-                <Icons.Crown size={12} /> {t('subscription.premiumPlan')}
+                <Icons.Crown size={12} /> Premium Plan
               </span>
             )}
           </div>
         </div>
-        {/* ✅ Manual refresh button still works */}
         <button onClick={() => { hasFetched.current = false; loadDashboardData(); }} className="btn-secondary self-start md:self-auto">
           <Icons.RefreshCw size={16} /> Refresh
         </button>
@@ -270,12 +253,12 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="flex-1 text-center sm:text-left">
-              <h3 className="font-bold text-lg mb-2">{t('dashboard.profileStrength')}</h3>
+              <h3 className="font-bold text-lg mb-2">Profile Strength</h3>
               <p className="text-sm text-[var(--text-secondary)] mb-4">
-                {completionPct < 50 ? t('dashboard.completeYourProfile') : "Your profile is looking great! Keep it updated."}
+                {completionPct < 50 ? "Complete your profile to get better matches." : "Your profile is looking great! Keep it updated."}
               </p>
               <Link to="/complete-profile" className="btn-secondary inline-flex">
-                <Icons.Edit size={16} className="mr-2" /> {t('profile.editTitle')}
+                <Icons.Edit size={16} className="mr-2" /> Edit Profile
               </Link>
             </div>
           </div>
@@ -296,8 +279,8 @@ export default function DashboardPage() {
           {suggestedProfiles.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="label mb-0">{t('dashboard.recentMatches')}</h3>
-                <Link to="/search" className="text-xs font-bold text-[var(--accent-500)]">{t('common.view')} All</Link>
+                <h3 className="label mb-0">Recent Matches</h3>
+                <Link to="/search" className="text-xs font-bold text-[var(--accent-500)]">View All</Link>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
@@ -340,17 +323,17 @@ export default function DashboardPage() {
                         <button
                           onClick={(e) => handleShortlist(e, profileId)}
                           className="flex-1 btn-secondary py-1.5 px-0 h-8 justify-center min-w-0"
-                          title={t('matches.shortlist')}
+                          title="Save Profile"
                         >
                           <Icons.Bookmark size={14} />
-                          <span className="hidden xl:inline ml-1 text-[10px] font-bold truncate">{t('common.save')}</span>
+                          <span className="hidden xl:inline ml-1 text-[10px] font-bold truncate">Save</span>
                         </button>
 
                         <button
                           onClick={(e) => handleConnect(e, profileId)}
                           disabled={sendingInterest === profileId}
                           className="flex-1 btn-primary py-1.5 px-0 h-8 justify-center min-w-0"
-                          title={t('matches.request')}
+                          title="Send Request"
                         >
                           {sendingInterest === profileId ? (
                             <Icons.Loader size={14} className="animate-spin" />
@@ -370,20 +353,20 @@ export default function DashboardPage() {
 
         <div className="flex flex-col gap-6">
           <div className="card p-6 bg-gradient-to-br from-[var(--surface-glass)] to-[var(--surface-glass-active)]">
-            <h3 className="font-bold mb-2">{t('dashboard.upgradeToPremium')}</h3>
+            <h3 className="font-bold mb-2">Upgrade to Premium</h3>
             <p className="text-sm text-[var(--text-secondary)] mb-4">
               Get 3x more matches and view contact details.
             </p>
             <Link to="/pricing" className="btn-primary w-full justify-center">
               <Icons.Zap size={16} className="mr-2" />
-              {t('subscription.upgrade')}
+              Upgrade
             </Link>
           </div>
 
           <div className="card p-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="label mb-0">Recent Visitors</h3>
-              <Link to="/visitors" className="text-xs font-bold text-[var(--accent-500)]">{t('common.view')} All</Link>
+              <Link to="/visitors" className="text-xs font-bold text-[var(--accent-500)]">View All</Link>
             </div>
             <div className="text-sm text-[var(--text-muted)]">
               See who viewed your profile recently.

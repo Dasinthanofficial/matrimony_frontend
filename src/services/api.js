@@ -469,10 +469,3 @@ export default {
   clearAuthData,
 };
 
-export const userAPI = {
-  updateMyLanguage: (preferredLanguage) =>
-    apiCall('/users/me/language', {
-      method: 'PATCH',
-      body: JSON.stringify({ preferredLanguage }),
-    }),
-};

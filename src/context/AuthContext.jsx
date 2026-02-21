@@ -1,6 +1,6 @@
+// src/context/AuthContext.jsx
 import React, { createContext, useState, useEffect, useCallback, useRef } from 'react';
 import { authAPI } from '../services/api';
-import i18n, { normalizeLang, persistLanguage } from '../i18n';
 
 const AuthContext = createContext();
 
@@ -36,7 +36,6 @@ const pickUserForCookie = (u) => {
     isPhoneVerified: !!u.isPhoneVerified,
     subscription: u.subscription || null,
     premiumExpiry: u.premiumExpiry || null,
-    preferredLanguage: u.preferredLanguage || null,
     agencyVerification: u.agencyVerification
       ? {
           status: u.agencyVerification.status,
@@ -48,28 +47,14 @@ const pickUserForCookie = (u) => {
   };
 };
 
-const applyUserLanguage = async (u) => {
-  const next = normalizeLang(
-    u?.preferredLanguage || localStorage.getItem('i18nextLng') || i18n.language || 'en'
-  );
-  persistLanguage(next);
-  try {
-    await i18n.changeLanguage(next);
-  } catch {
-    // ignore
-  }
-};
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setTokenState] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ FIX: Prevent duplicate /auth/me calls with a ref
   const hydrationDone = useRef(false);
 
-  // ─── Step 1: Restore token + cookie user on mount ───
   useEffect(() => {
     const storedToken = getCookie('accessToken');
     const storedUser = getCookie('user');
@@ -80,7 +65,6 @@ export const AuthProvider = ({ children }) => {
       try {
         const parsed = JSON.parse(decodeURIComponent(storedUser));
         setUser(parsed);
-        applyUserLanguage(parsed);
       } catch {
         deleteCookie('accessToken');
         deleteCookie('refreshToken');
@@ -91,13 +75,11 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // ─── Listen for token refresh events from api.js ───
   useEffect(() => {
     const onRefreshed = (e) => {
       const t = e?.detail?.token;
       if (t) {
         setTokenState(t);
-        // ✅ FIX: Allow re-hydration after token refresh
         hydrationDone.current = false;
       }
     };
@@ -114,8 +96,6 @@ export const AuthProvider = ({ children }) => {
     hydrationDone.current = false;
   }, []);
 
-  // ─── Step 2: Always hydrate full user from /auth/me when token exists ───
-  // ✅ FIX: Runs once per token change (not blocked by cookie user existing)
   useEffect(() => {
     if (loading || !token) return;
     if (hydrationDone.current) return;
@@ -127,14 +107,10 @@ export const AuthProvider = ({ children }) => {
       .getMe()
       .then(async (response) => {
         if (cancelled) return;
-
         const userData = response.user;
         const minimal = pickUserForCookie(userData);
-
         setCookie('user', encodeURIComponent(JSON.stringify(minimal)), 7);
         setUser(userData);
-
-        await applyUserLanguage(userData);
       })
       .catch(() => {
         if (cancelled) return;
@@ -146,7 +122,6 @@ export const AuthProvider = ({ children }) => {
     };
   }, [loading, token, clearAuthData]);
 
-  // ─── Store auth data after login/register ───
   const storeAuthData = useCallback(async (data) => {
     setCookie('accessToken', data.token, 7);
     const minimal = pickUserForCookie(data.user);
@@ -155,11 +130,7 @@ export const AuthProvider = ({ children }) => {
 
     setTokenState(data.token);
     setUser(data.user);
-
-    // ✅ FIX: Mark hydration done since we already have fresh user data
     hydrationDone.current = true;
-
-    await applyUserLanguage(data.user);
   }, []);
 
   const logout = useCallback(async () => {
@@ -179,13 +150,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.getMe();
       const userData = response.user;
-
       const minimal = pickUserForCookie(userData);
       setCookie('user', encodeURIComponent(JSON.stringify(minimal)), 7);
-
       setUser(userData);
-      await applyUserLanguage(userData);
-
       return userData;
     } catch (err) {
       console.error('Failed to refresh user:', err);
