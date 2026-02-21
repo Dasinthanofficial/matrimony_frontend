@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next'; // ✅ IMPORT TRANSLATION HOOK
+import { useTranslation } from 'react-i18next';
 import { Icons } from '../components/Icons';
 import api, { interestAPI } from '../services/api';
 import Toast from '../components/Toast';
@@ -25,7 +25,7 @@ const formatTimeAgo = (dateString) => {
 export default function DashboardPage() {
   const { user, refreshUser, hasPremiumAccess } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation(); // ✅ INITIALIZE TRANSLATION FUNCTION
+  const { t } = useTranslation();
   const premium = hasPremiumAccess();
 
   const [loading,  setLoading]  = useState(true);
@@ -51,7 +51,6 @@ export default function DashboardPage() {
   const showToast = (message, type = 'success') => setToastState({ open: true, message, type });
   const closeToast = () => setToastState(prev => ({ ...prev, open: false }));
 
-  // ✅ MOVED QUICK ACTIONS INSIDE COMPONENT TO ACCESS t()
   const quickActions = useMemo(() => [
     { name: t('nav.search'),      path: '/search',    icon: Icons.Search,        color: 'bg-blue-500/10 text-blue-500'  },
     { name: t('nav.matches'),     path: '/interests', icon: Icons.Heart,         color: 'bg-rose-500/10 text-rose-500'  },
@@ -75,7 +74,9 @@ export default function DashboardPage() {
           setStats(prev => ({ ...prev, profileViews: myProfileRes.profile.profileViews || 0 }));
         }
       } catch (e) { 
-        if (e.response?.status !== 404) {
+        // ✅ FIX: Safely ignore "Profile not found" (404) for new users without spamming console
+        const isNotFound = e.response?.status === 404 || e.message?.toLowerCase().includes('not found');
+        if (!isNotFound) {
           console.warn("Completion load failed", e); 
         }
       }
@@ -110,7 +111,9 @@ export default function DashboardPage() {
 
     } catch (err) {
       console.error('Dashboard load error:', err);
-      if (err.response?.status !== 404) {
+      // ✅ FIX: Prevent showing red error toasts for normal 404s
+      const isNotFound = err.response?.status === 404 || err.message?.toLowerCase().includes('not found');
+      if (!isNotFound) {
         setError(t('errors.unknown'));
         showToast(t('errors.unknown'), 'error');
       }
@@ -119,9 +122,11 @@ export default function DashboardPage() {
     }
   }, [refreshUser, t]);
 
+  // ✅ FIX: Empty dependency array stops the infinite fetch loop!
   useEffect(() => {
     loadDashboardData();
-  }, [loadDashboardData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); 
 
   const handleConnect = async (e, profileId) => {
     e.preventDefault();
@@ -169,7 +174,6 @@ export default function DashboardPage() {
   const displayName  = useMemo(() => user?.fullName || user?.email?.split('@')[0] || 'User', [user]);
   const profileLink  = useMemo(() => (user?.profileId ? `/profile/${user.profileId}` : '/complete-profile'), [user]);
 
-  // ✅ STATS TRANSLATIONS APPLIED HERE
   const statsCards = useMemo(() => [
     { label: t('nav.matches'), value: stats.interestsReceived, icon: Icons.Heart, color: 'bg-rose-500/10 text-rose-500', link: '/interests' },
     { label: t('matches.title'), value: stats.matches, icon: Icons.Users, color: 'bg-green-500/10 text-green-500', link: '/interests' },
@@ -190,7 +194,6 @@ export default function DashboardPage() {
       <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">
-            {/* ✅ Welcome Translated */}
             {t('auth.welcomeBack')}, <span className="text-gradient">{displayName}</span>
           </h1>
           <div className="flex items-center gap-3 mt-2">
@@ -249,7 +252,6 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="flex-1 text-center sm:text-left">
-              {/* ✅ Translation added here */}
               <h3 className="font-bold text-lg mb-2">{t('dashboard.profileStrength')}</h3>
               <p className="text-sm text-[var(--text-secondary)] mb-4">
                 {completionPct < 50 ? t('dashboard.completeYourProfile') : "Your profile is looking great! Keep it updated."}
@@ -276,7 +278,6 @@ export default function DashboardPage() {
           {suggestedProfiles.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-4">
-                {/* ✅ Suggested profiles heading */}
                 <h3 className="label mb-0">{t('dashboard.recentMatches')}</h3>
                 <Link to="/search" className="text-xs font-bold text-[var(--accent-500)]">{t('common.view')} All</Link>
               </div>
